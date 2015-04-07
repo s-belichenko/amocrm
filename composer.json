@@ -1,0 +1,24 @@
+{
+	"name": "nabarabane/amocrm",
+	"type": "library",
+	"description": "",
+	"keywords": [],
+	"homepage": "",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Denis Gerasimov",
+			"email": "nabarabane@yandex.ru",
+			"homepage": "",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"php": ">=5.5.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"AmoCRM\\": "src/"
+		}
+	}
+}
