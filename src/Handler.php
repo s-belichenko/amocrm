@@ -2,8 +2,6 @@
 
 namespace AmoCRM;
 
-use AmoCRM\Exception as Exception;
-
 class Handler
 {
 	private $domain;
@@ -22,21 +20,21 @@ class Handler
 		$file_config = __DIR__.'/../config/config@'.$this->domain.'.php';
 
 		if (!file_exists($file_key)) {
-			throw new Exception('Отсутсвует файл с ключом');
+			throw new \Exception('Отсутсвует файл с ключом');
 		}
 
 		if (!file_exists($file_config)) {
-			throw new Exception('Отсутсвует файл с конфигурацией');
+			throw new \Exception('Отсутсвует файл с конфигурацией');
 		}
 
 		$key = trim(file_get_contents($file_key));
 
 		if (empty($key)) {
-			throw new Exception('Файл с ключом пуст');
+			throw new \Exception('Файл с ключом пуст');
 		}
 
 		if (empty($file_config)) {
-			throw new Exception('Файл с конфигурацией пуст');
+			throw new \Exception('Файл с конфигурацией пуст');
 		}
 
 		$this->key = $key;
@@ -69,13 +67,17 @@ class Handler
 		curl_close($ch);
 
 		if ($error) {
-			throw new Exception($error);
+			throw new \Exception($error);
 		}
 
 		$this->result = json_decode($result);
 
 		if (floor($info['http_code'] / 100) >= 3) {
-			throw new Exception($this->result->response->error);
+			throw new \Exception($this->result->response->error);
 		}
+
+		$this->result = isset($this->result->response) ? $this->result->response : false;
+
+		return $this;
 	}
 }

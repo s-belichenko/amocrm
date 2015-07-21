@@ -2,8 +2,6 @@
 
 namespace AmoCRM;
 
-use AmoCRM\Exception as Exception;
-
 class Request
 {
 	const AUTH = 1;

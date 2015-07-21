@@ -14,6 +14,13 @@ class Task
 	public $last_modified;
 	public $_name = 'tasks';
 
+	const CALL = 1;
+	const MEETING = 2;
+	const LETTER = 3;
+
+	const TYPE_CONTACT = 1;
+	const TYPE_LEAD = 2;
+
 	public function setElementId($value)
 	{
 		$this->element_id = $value;
