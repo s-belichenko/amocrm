@@ -28,12 +28,13 @@ class Handler
 		}
 
 		$key = trim(file_get_contents($file_key));
+		$config = trim(file_get_contents($file_config));
 
 		if (empty($key)) {
 			throw new \Exception('Файл с ключом пуст');
 		}
 
-		if (empty($file_config)) {
+		if (empty($config)) {
 			throw new \Exception('Файл с конфигурацией пуст');
 		}
 
