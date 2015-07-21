@@ -75,12 +75,7 @@ class Handler
 		$this->result = json_decode($result);
 
 		if (floor($info['http_code'] / 100) >= 3) {
-			throw $this->catchError();
+			throw new Exception($this->result->response->error);
 		}
-	}
-
-	private function catchError()
-	{
-		return new Exception($this->result->response->error);
 	}
 }
