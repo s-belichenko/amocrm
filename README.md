@@ -109,7 +109,7 @@ $email = 'user@user.com';
 $message = 'Здравствуйте';
 
 try {
-	$api = new Handler('sektorpriz', 'crm@sektor-priz.ru');
+	$api = new Handler('test', 'test@example.com');
 
 
 	// Создаем сделку, $api->config содержит в себе массив конфига, который вы создавали в начале
