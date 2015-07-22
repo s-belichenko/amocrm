@@ -20,12 +20,6 @@ class Webhook
 
 	public function on($name, $callback)
 	{
-		'add'
-		'update'
-		'status'
-		'responsible'
-		'delete'
-
 		if (!is_callable($callback, true)) {
 			throw new \InvalidArgumentException(sprintf('Invalid callback: %s.', print_r($callback, true)));
 		}
