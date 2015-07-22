@@ -18,8 +18,8 @@ class Task
 	const MEETING = 2;
 	const LETTER = 3;
 
-	const TYPE_CONTACT = 1;
-	const TYPE_LEAD = 2;
+	const TYPE_CONTACT = 1; // Првязка к контакту
+	const TYPE_LEAD = 2; // Привязка к сделке
 
 	public function setElementId($value)
 	{

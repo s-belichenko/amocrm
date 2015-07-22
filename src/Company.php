@@ -2,10 +2,9 @@
 
 namespace AmoCRM;
 
-class Contact
+class Company
 {
 	public $name;
-	public $company_name;
 	public $responsible_user_id;
 	public $tags;
 	public $linked_leads_id = [];
@@ -23,10 +22,7 @@ class Contact
 		return $this;
 	}
 
-	public function setCompanyName($value)
-	{
-		$this->company_name = $value;
-	}
+
 
 	public function setResponsibleUserId($value)
 	{

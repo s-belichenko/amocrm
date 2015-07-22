@@ -1,5 +1,6 @@
 # amocrm
-Простая обертка для работы с API AmoCRM
+Простая обертка для работы с API AmoCRM.
+
 ## Что умеет
 - Получать информацию об аккаунте
 - Получать список объектов
@@ -9,6 +10,7 @@
 
 На данный момент для запросов доступны следующие объекты:
 - Контакт [https://developers.amocrm.ru/rest_api/#contact](https://developers.amocrm.ru/rest_api/#contact)
+- Компания [https://developers.amocrm.ru/rest_api/#company](https://developers.amocrm.ru/rest_api/#company)
 - Сделка [https://developers.amocrm.ru/rest_api/#lead](https://developers.amocrm.ru/rest_api/#lead)
 - Задача [https://developers.amocrm.ru/rest_api/#tasks](https://developers.amocrm.ru/rest_api/#tasks)
 - Событие [https://developers.amocrm.ru/rest_api/#event](https://developers.amocrm.ru/rest_api/#event)
@@ -24,10 +26,12 @@
 ```json
 "nabarabane/amocrm": "1.*"
 ```
+
 Или введите в консоли
 ```sh
 composer require nabarabane/amocrm:1.*
 ```
+
 ## Подготовка к работе и настройка
 Создайте папку "config" в корне пакета, куда положите два файла:
 - config@{ваш-домен-в-amocrm}.php
@@ -48,6 +52,7 @@ return [
 	'LeadFieldCustomValue2' => 4055519 // ID второго значения кастомного поля сделки
 ];
 ```
+
 Номера полей вашего аккаунта можно получить так:
 ```php
 <?php
@@ -60,13 +65,50 @@ require('autoload.php');
 $api = new Handler('domain', 'user@example.com');
 print_r($api->request(new Request(Request::INFO))->result);
 ```
-На страницу будет выведена вся информация об аккаунте. Выбираете номера нужных полей (номера пользователей, номера кастомных полей сделок и т.д.) и сохраняете в конфиг с понятными вам названиями.
+
+На страницу будет выведена вся информация об аккаунте.  
+Выбираете номера нужных полей (номера пользователей, номера кастомных полей сделок и т.д.) и сохраняете в конфиг с понятными вам названиями.
 
 Файл с ключом должен содержать в себе API-ключ выбранного пользователя.
 
 ---
 
 ## Использование
+### Получение данных
+
+```php
+<?php
+
+use \AmoCRM\Handler;
+use \AmoCRM\Request;
+
+require('autoload.php');
+
+/* Создание экземпляра API, где "domain" - имя вашего домена в AmoCRM, а
+"user@example.com" - email пользователя, от чьего имени будут совершаться запросы */
+$api = new Handler('domain', 'user@example.com');
+
+/* Создание экземляра запроса */
+
+/* Вторым параметром можно передать дополнительные параметры поиска (смотрите в документации)
+В этом примере мы ищем пользователя с номером телефона +7 916 111-11-11
+Чтобы получить полный список, укажите пустой массив []
+Третьим параметром указывается метод в формате [название объекта, метод] */
+$request_get = new Request(Request::GET, ['query' => '79161111111'], ['contacts', 'list']);
+
+/* Выполнение запроса */
+$result = $api->request($request)->result;
+
+/* Результат запроса сохраняется в свойстве "result" объекта \AmoCRM\Handler()
+Содержит в себе объект, полученный от AmoCRM, какой конкретно - сверяйтесь с документацией для каждого метода
+Ошибка запроса выбросит исключение */
+$api->result == false, если ответ пустой (то есть контакты с таким телефоном не найдены) */
+```
+
+
+### Создание новых объектов
+Пример рабочего кода, который покрывает все доступные возможности библиотеки
+
 ```php
 <?php
 
@@ -79,136 +121,155 @@ use \AmoCRM\Task;
 
 require('autoload.php');
 
-// Создание экземпляра API, где "domain" - имя вашего домена в AmoCRM, а
-// "user@example.com" - email пользователя, от чьего имени будут совершаться запросы
-$api = new Handler('domain', 'user@example.com');
-
-// Создание экземляра запроса
-// Для примера - поиск пользователя по номеру телефона
-// 1 - тип запроса (Request::GET - получить, Request::POST - отправить)
-// 2 - GET - параметры запроса (свои для каждого метода, сверяйтесь с документацией), SET - объект
-// 2 - только для GET - метод запроса ([объект_запроса, метод_запроса]).
-$request = new Request(Request::GET, ['query' => '79161111111'], ['contacts', 'list']);
-
-//Выполнение запроса
-$result = $api->request($request)->result;
-// Вернется объект, какой конкретно - сверяйтесь с документацией для каждого метода.
-// Ошибка запроса выбросит исключение
-// Вернется false, если ответ пустой (то есть контакты с таким телефоном не найдены)
-```
-
----
-
-## Создание объектов
-Вот пример кода, который покрывает все доступные возможности.
-В примере опушена работа с тегами, но такая возможность есть, смотрите исходники.
-
-Пользователь ввел некоторые данные в форму на сайте:
-```php
-<?php
-
-use \AmoCRM\Handler;
-use \AmoCRM\Request;
-use \AmoCRM\Lead;
-use \AmoCRM\Contact;
-use \AmoCRM\Note;
-use \AmoCRM\Task;
-
-require __DIR__.'/lib/autoload.php';
-
+/* Предположим, пользователь ввел какие-то данные в форму на сайте */
 $name = 'Пользователь';
 $phone = '79161111111';
 $email = 'user@user.com';
 $message = 'Здравствуйте';
 
+/* Оборачиваем в try{} catch(){}, чтобы отлавливать исключения */
 try {
-	$api = new Handler('test', 'test@example.com');
+	$api = new Handler('domain', 'user@example.com');
 
 
-	// Создаем сделку, $api->config содержит в себе массив конфига, который вы создавали в начале
+	/* Создаем сделку,
+	$api->config содержит в себе массив конфига,
+	который вы создавали в начале */
 	$lead = new Lead();
-	$lead->setName('Заявка')
+	$lead
+		/* Название сделки */
+		->setName('Заявка') 
+		/* Назначаем ответственного менеджера */
 		->setResponsibleUserId($api->config['ResponsibleUserId'])
-		->setCustomField($api->config['LeadFieldCustom'], $api->config['LeadFieldCustomValue1']) // ID поля, ID значения поля
+		/* Кастомное поле */
+		->setCustomField(
+			$api->config['LeadFieldCustom'], // ID поля
+			$api->config['LeadFieldCustomValue1'] // ID значения поля
+		)
+		/* Теги
+		Строка, если один тег,
+		массив - если несколько */
+		->setTags([
+			'тег 1',
+			'тег 2'
+		])
+		/* Статус сделки */
 		->setStatusId($api->config['LeadStatusId']);
 
-	$api->request(new Request( Request::SET, $lead ));
-	// Сохраняем ID новой сделки для использования в дальнейшем
+	/* Отправляем данные в AmoCRM
+	В случае успешного добавления в результате
+	будет объект новой сделки */
+	$api->request(new Request(Request::SET, $lead));
+
+	/* Сохраняем ID новой сделки для использования в дальнейшем */
 	$lead = $api->result->leads->add[0]->id;
 
 
-	// Создаем контакт
+	/* Создаем контакт */
 	$contact = new Contact();
-	$contact->setName($name)
+	$contact
+		/* Имя */
+		->setName($name)
+		/* Назначаем ответственного менеджера */
 		->setResponsibleUserId($api->config['ResponsibleUserId'])
-		->setLinkedLeadsId($lead) // Привязка созданной сделки к контакту
-		->setCustomField($api->config['ContactFieldPhone'], $phone, 'MOB') // MOB - enum для этого поля, список доступных значений смотрите в информации об аккаунте
-		->setCustomField($api->config['ContactFieldEmail'], $email, 'WORK'); // WORK - enum для этого поля, список доступных значений смотрите в информации об аккаунте
+		/* Привязка созданной сделки к контакту */
+		->setLinkedLeadsId($lead)
+		/* Кастомные поля */
+		->setCustomField(
+			$api->config['ContactFieldPhone'],
+			$phone, // Номер телефона
+			'MOB' // MOB - это ENUM для этого поля, список доступных значений смотрите в информации об аккаунте
+		) 
+		->setCustomField(
+			$api->config['ContactFieldEmail'],
+			$email, // Email
+			'WORK' // WORK - это ENUM для этого поля, список доступных значений смотрите в информации об аккаунте
+		); 
 
-	// Проверяем по емейлу, есть ли пользователь в нашей базе
+	/* Проверяем по емейлу, есть ли пользователь в нашей базе */
 	$api->request(new Request(Request::GET, ['query' => $email], ['contacts', 'list']));
+
+	/* Если пользователя нет, вернется false, если есть - объект пользователя */
 	$contact_exists = ($api->result) ? $api->result->contacts[0] : false;
-	// Если такой пользователь уже есть - мержим поля
+
+	/* Если такой пользователь уже есть - мержим поля */
 	if ($contact_exists) {
-		$contact->setUpdate($contact_exists->id, $contact_exists->last_modified + 1)
+		$contact
+			/* Указываем, что пользователь будет обновлен */
+			->setUpdate($contact_exists->id, $contact_exists->last_modified + 1)
+			/* Ответственного менеджера оставляем кто был */
 			->setResponsibleUserId($contact_exists->responsible_user_id)
+			/* Старые привязанные сделки тоже сохраняем */
 			->setLinkedLeadsId($contact_exists->linked_leads_id);
 	}
 
 
-	// Создаем заметку с сообщением из формы
+	/* Создаем заметку с сообщением из формы */
 	$note = new Note();
-	$note->setElementId($lead) // Привязка к созданной сделке
+	$note
+		/* Привязка к созданной сделке*/
+		->setElementId($lead)
+		/* Тип привязки (к сделке или к контакту). Смотрите комментарии в Note.php */
 		->setElementType(Note::TYPE_LEAD)
+		/* Тип заметки (здесь - обычная текстовая). Смотрите комментарии в Note.php */
 		->setNoteType(Note::COMMON)
+		/* Текст заметки*/
 		->setText($message);
 
 
 
-	// Создаем задачу дял менеджера обработать заявку
+	/* Создаем задачу для менеджера обработать заявку */
 	$task = new Task();
-	$task->setElementId($lead) // Привязка к созданной сделке
+	$task
+		/* Привязка к созданной сделке */
+		->setElementId($lead)
+		/* Тип привязки (к сделке или к контакту) Смотрите комментарии в Task.php */
 		->setElementType(Task::TYPE_LEAD)
+		/* Тип задачи. Смотрите комментарии в Task.php */
 		->setTaskType(Task::CALL)
+		/* ID ответсвенного за задачу менеджера */
 		->setResponsibleUserId($api->config['ResponsibleUserId'])
-		->setCompleteTill(time() + 60 * 2) // В течение какого времени менеджеру нужно обработать заявку
+		/* Дедлайн задачи */
+		->setCompleteTill(time() + 60 * 2)
+		/* Текст задачи */
 		->setText('Обработать заявку');
 
 
-	// Отправляем все в AmoCRM
+	/* Отправляем все в AmoCRM */
 	$api->request(new Request(Request::SET, $contact));
 	$api->request(new Request(Request::SET, $note));
 	$api->request(new Request(Request::SET, $task));
 } catch (\Exception $e) {
 	echo $e->getMessage();
 }
-
-echo 'Success';
 ```
 
 ---
 
 ## Webhooks
-Как настроить аккаунт на работу с вебхуками смотрите [здесь](https://developers.amocrm.ru/rest_api/webhooks.php).
-Чтобы успешно обрабатывать запрос от AmoCRM на ваш сайт, вам нужно создать слушателя событий в файле, на который AmoCRM шлет свои запросы, и определить функции, котрые будут вызываться при определенном событии.
+Как настроить аккаунт на работу с вебхуками смотрите [здесь](https://developers.amocrm.ru/rest_api/webhooks.php).  
+Чтобы успешно обрабатывать запрос от AmoCRM на ваш сайт, вам нужно создать слушателя событий в файле, на который AmoCRM шлет свои запросы, и определить функции, которые будут вызываться при определенном событии.
 
 ### Список доступных событий
+
 #### Сделки
 - **leads-add** Создание сделки
 - **leads-update** Изменение сделки
 - **leads-delete** Удаление сделки
 - **leads-status** Смена статуса сделки
 - **leads-responsible** Смена ответственного сделки
+
 #### Контакты
 - **contacts-add** Создание контакта
 - **contacts-update** Изменение контакта
 - **contacts-delete** Удаление контакта
+
 #### Компании
 - **companies-add** Создание компании
 - **companies-update** Изменение компании
 - **companies-delete** Удаление компании
 
-Обратите внимание, что при смене статуса сделки или при смене ответственного сделки, AmoCRM одновременно посылает информацию и об общем изменении сделки, то есть код для **leads-status** и **leads-responsible** всегда будет выполняться вместе с **leads-update**.
+Обратите внимание, что при смене статуса сделки или при смене ответственного сделки, AmoCRM одновременно посылает информацию и об общем изменении сделки, то есть код для **leads-status** и **leads-responsible** всегда будет выполняться вместе с **leads-update.**
 ```php
 <?php
 
@@ -218,20 +279,20 @@ require('autoload.php');
 
 $listener = new Webhook();
 
-/*
-В callback-функцию передаются следующие параметры:
-$domain - название домена в AmoCRM, с которого пришло событие
-$id - ID сущности
-$data - массив полей сущности
-$config - конфиг этого домена (если вы создавали соответствующий файл, иначе - пустой массив)
-*/
+/* Указываете обработчики событий
+Callback-функция, передаваемая вторым параметром,
+будет вызвана при наступлении соответстующего события */
 $listener->on('leads-add', function($domain, $id, $data, $config) {
-	// Тут делаете, что нужно при этом событии
+	/* Тут делаете, что нужно при этом событии
+	
+	Сюда передаются следующие параметры:
+		$domain - название домена в AmoCRM, с которого пришло событие
+		$id - ID сущности
+		$data - массив полей сущности
+		$config - конфиг этого домена (если вы создавали соответствующий файл, иначе - пустой массив) */
 });
-$listener->on('contacts-delete', function($domain, $id, $data, $config) {
-	// Тут делаете, что нужно при этом событии
-});
+$listener->on('contacts-delete', function($domain, $id, $data, $config) {/* ... */});
 
-// Запуск слушателя
+/* Запуск слушателя */
 $listener->listen();
 ```
