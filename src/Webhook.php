@@ -24,7 +24,13 @@ class Webhook
 			throw new \InvalidArgumentException(sprintf('Invalid callback: %s.', print_r($callback, true)));
 		}
 
-		$this->hooks[$name][] = $callback;
+		if (!is_array($name)) {
+			$name = [$name];
+		}
+
+		foreach ($name as $event) {
+			$this->hooks[$event][] = $callback;
+		}
 	}
 
 	public function listen()

@@ -291,7 +291,9 @@ $listener->on('leads-add', function($domain, $id, $data, $config) {
 		$data - массив полей сущности
 		$config - конфиг этого домена (если вы создавали соответствующий файл, иначе - пустой массив) */
 });
-$listener->on('contacts-delete', function($domain, $id, $data, $config) {/* ... */});
+
+/* Если вы хотите назначить одинаковый обработчик нескольким событиям, можно сделать так */
+$listener->on(['contacts-add', 'contacts-update'], function($domain, $id, $data, $config) {/* ... */});
 
 /* Запуск слушателя */
 $listener->listen();
