@@ -1,15 +1,12 @@
 {
 	"name": "nabarabane/amocrm",
 	"type": "library",
-	"description": "",
-	"keywords": [],
-	"homepage": "",
+	"description": "Простая обертка для работы с API AmoCRM",
 	"license": "MIT",
 	"authors": [
 		{
 			"name": "Denis Gerasimov",
 			"email": "mailbox.gerasimov@gmail.com",
-			"homepage": "",
 			"role": "Developer"
 		}
 	],
