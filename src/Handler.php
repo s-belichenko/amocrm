@@ -5,19 +5,24 @@ namespace AmoCRM;
 class Handler
 {
 	private $domain;
+	private $debug;
+	private $errors;
 
 	public $user;
 	public $key;
 	public $config;
 	public $result;
 
-	public function __construct($domain = null, $user = null)
+	public function __construct($domain = null, $user = null, $debug = false)
 	{
 		$this->domain = $domain;
 		$this->user = $user;
+		$this->debug = $debug;
 
-		$file_key = __DIR__.'/../config/'.$this->domain.'@'.$this->user.'.key';
-		$file_config = __DIR__.'/../config/config@'.$this->domain.'.php';
+		$config_dir = __DIR__.'/../config/';
+
+		$file_key = $config_dir.$this->domain.'@'.$this->user.'.key';
+		$file_config = $config_dir.'config@'.$this->domain.'.php';
 
 		if (!file_exists($file_key)) {
 			throw new \Exception('Отсутсвует файл с ключом');
@@ -36,6 +41,10 @@ class Handler
 
 		if (empty($config)) {
 			throw new \Exception('Файл с конфигурацией пуст');
+		}
+
+		if ($this->debug) {
+			$this->errors = @json_decode(trim(file_get_contents($config_dir.'errors.json')));
 		}
 
 		$this->key = $key;
@@ -74,7 +83,22 @@ class Handler
 		$this->result = json_decode($result);
 
 		if (floor($info['http_code'] / 100) >= 3) {
-			throw new \Exception($this->result->response->error);
+			if (!$this->debug) {
+				$message = $this->result->response->error;
+			} else {
+				$error = (isset($this->result->response->error)) ? $this->result->response->error : '';
+				$error_code = (isset($this->result->response->error_code)) ? $this->result->response->error_code : '';
+				$description = ($error && $error_code && isset($this->errors->{$error_code})) ? $this->errors->{$error_code} : '';
+				$response = (isset($this->result->response->error)) ? $this->result->response->error : '';
+
+				$message = json_encode([
+					'http_code' => $info['http_code'],
+					'response' => $response,
+					'description' => $description
+				], JSON_UNESCAPED_UNICODE);
+			}
+
+			throw new \Exception($message);
 		}
 
 		$this->result = isset($this->result->response) ? $this->result->response : false;
