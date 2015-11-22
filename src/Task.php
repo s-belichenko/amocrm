@@ -63,7 +63,7 @@ class Task
 		return $this;
 	}
 
-	public function setUpdate($id, $lat_modified)
+	public function setUpdate($id, $last_modified)
 	{
 		$this->id = $id;
 		$this->last_modified = $last_modified;
