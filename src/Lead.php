@@ -31,7 +31,7 @@ class Lead
 
 	public function setStatusId($value)
 	{
-		$this->responsible_user_id = $value;
+		$this->status_id = $value;
 
 		return $this;
 	}
@@ -69,7 +69,7 @@ class Lead
 		return $this;
 	}
 
-	public function setUpdate($id, $lat_modified)
+	public function setUpdate($id, $last_modified)
 	{
 		$this->id = $id;
 		$this->last_modified = $last_modified;
