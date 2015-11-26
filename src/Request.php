@@ -62,6 +62,7 @@ class Request
 			foreach ($this->params as $key => $value) {
 				$this->url .= ($i == 1) ? '?' : '&';
 				$this->url .= $key.'='.$value;
+				$i++;
 			}
 		}
 	}
