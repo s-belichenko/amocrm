@@ -24,12 +24,12 @@
 ## Установка
 Добавьте в блок "require" в composer.json вашего проекта
 ```json
-"nabarabane/amocrm": "~1.0"
+"nabarabane/amocrm": "~1.1"
 ```
 
 Или введите в консоли
 ```sh
-composer require nabarabane/amocrm:~1.0
+composer require nabarabane/amocrm:"~1.1"
 ```
 
 ## Подготовка к работе и настройка
