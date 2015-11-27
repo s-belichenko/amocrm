@@ -2,8 +2,6 @@
 
 namespace AmoCRM;
 
-class Lead
-
 class Lead extends Entity
 {
 	public $name;
