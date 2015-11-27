@@ -2,7 +2,7 @@
 
 namespace AmoCRM;
 
-class Task
+class Task extends Entity
 {
 	public $element_id;
 	public $element_type;
@@ -10,9 +10,6 @@ class Task
 	public $responsible_user_id;
 	public $complete_till;
 	public $text;
-	public $id;
-	public $last_modified;
-	public $_name = 'tasks';
 
 	const CALL = 1;
 	const MEETING = 2;
@@ -20,6 +17,11 @@ class Task
 
 	const TYPE_CONTACT = 1; // Првязка к контакту
 	const TYPE_LEAD = 2; // Привязка к сделке
+
+	public function __construct()
+	{
+		$this->type = 'tasks';
+	}
 
 	public function setElementId($value)
 	{
@@ -59,14 +61,6 @@ class Task
 	public function setText($value)
 	{
 		$this->text = $value;
-
-		return $this;
-	}
-
-	public function setUpdate($id, $last_modified)
-	{
-		$this->id = $id;
-		$this->last_modified = $last_modified;
 
 		return $this;
 	}

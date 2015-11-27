@@ -3,17 +3,23 @@
 namespace AmoCRM;
 
 class Lead
+
+class Lead extends Entity
 {
 	public $name;
 	public $responsible_user_id;
 	public $tags;
 	public $status_id;
-	public $custom_fields = [];
-	public $id;
-	public $last_modified;
-	public $_name = 'leads';
+	public $custom_fields;
 
-	private $tags_array = [];
+	private $tags_array;
+
+	public function __construct()
+	{
+		$this->type = 'leads';
+		$this->custom_fields = [];
+		$this->tags_array = [];
+	}
 
 	public function setName($value)
 	{
@@ -65,14 +71,6 @@ class Lead
 		$field['values'][] = $field_value;
 
 		$this->custom_fields[] = $field;
-
-		return $this;
-	}
-
-	public function setUpdate($id, $last_modified)
-	{
-		$this->id = $id;
-		$this->last_modified = $last_modified;
 
 		return $this;
 	}

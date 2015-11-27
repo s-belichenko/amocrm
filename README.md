@@ -146,13 +146,8 @@ try {
 			$api->config['LeadFieldCustom'], // ID поля
 			$api->config['LeadFieldCustomValue1'] // ID значения поля
 		)
-		/* Теги
-		Строка, если один тег,
-		массив - если несколько */
-		->setTags([
-			'тег 1',
-			'тег 2'
-		])
+		/* Теги. Строка - если один тег, массив - если несколько */
+		->setTags(['тег 1', 'тег 2'])
 		/* Статус сделки */
 		->setStatusId($api->config['LeadStatusId']);
 
@@ -162,7 +157,7 @@ try {
 	$api->request(new Request(Request::SET, $lead));
 
 	/* Сохраняем ID новой сделки для использования в дальнейшем */
-	$lead = $api->result->leads->add[0]->id;
+	$lead = $api->last_insert_id;
 
 
 	/* Создаем контакт */
@@ -184,7 +179,9 @@ try {
 			$api->config['ContactFieldEmail'],
 			$email, // Email
 			'WORK' // WORK - это ENUM для этого поля, список доступных значений смотрите в информации об аккаунте
-		); 
+		) 
+		/* Теги. Строка - если один тег, массив - если несколько */
+		->setTags(['тег контакта 1', 'тег контакта 2']);
 
 	/* Проверяем по емейлу, есть ли пользователь в нашей базе */
 	$api->request(new Request(Request::GET, ['query' => $email], ['contacts', 'list']));

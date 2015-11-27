@@ -12,6 +12,7 @@ class Handler
 	public $key;
 	public $config;
 	public $result;
+	public $last_insert_id;
 
 	public function __construct($domain = null, $user = null, $debug = false)
 	{
@@ -102,6 +103,9 @@ class Handler
 		}
 
 		$this->result = isset($this->result->response) ? $this->result->response : false;
+		$this->last_insert_id = ($request->post && isset($this->result->{$request->type}->add[0]->id))
+			? $this->result->{$request->type}->add[0]->id
+			: false;
 
 		return $this;
 	}

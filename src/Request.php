@@ -11,6 +11,7 @@ class Request
 
 	public $post;
 	public $url;
+	public $type;
 	public $params;
 
 	private $object;
@@ -69,16 +70,16 @@ class Request
 	private function createPostRequest()
 	{
 		$this->post = true;
-		$this->url = 'v2/json/'.$this->params->_name.'/set';
+		$this->url = 'v2/json/'.$this->params->type.'/set';
 
 		$update = isset($this->params->id);
 		$object = array_filter((array)$this->params);
 		$action = ($update) ? 'update' : 'add';
-
 		$params = [];
-		$params['request'][$this->params->_name][$action] = [(array)$object];
-		unset($params['request'][$this->params->_name][$action]['_name']);
 
+		$params['request'][$this->params->type][$action] = [(array)$object];
+
+		$this->type = $this->params->type;
 		$this->params = $params;
 	}
 }
