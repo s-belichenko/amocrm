@@ -232,6 +232,37 @@ try {
 }
 ```
 
+### Мультизагрузка объектов
+Есть возможность создавать одновременно несколько объектов одного типа и отправлять их в amoCRM одним запросом
+
+```php
+use \AmoCRM\Handler;
+use \AmoCRM\Request;
+use \AmoCRM\Lead;
+
+require('autoload.php');
+
+try {
+	$api = new Handler('domain', 'user@example.com');
+
+	/* Первая сделка */
+	$lead1 = new Lead();
+	$lead1
+	    ->setName('Заявка 1') 
+		->setResponsibleUserId($api->config['ResponsibleUserId'])
+		->setStatusId($api->config['LeadStatusId']);
+	
+	/* Вторая сделка */
+	$lead2 = new Lead();
+	$lead2
+	    ->setName('Заявка 2') 
+		->setResponsibleUserId($api->config['ResponsibleUserId'])
+		->setStatusId($api->config['LeadStatusId']);
+
+	/* Отправляем данные в AmoCRM */
+	$api->request(new Request(Request::SET, [$lead1, $lead2]));
+```
+
 ## Дебаггинг
 В случае ошибки запроса к API, AmoCRM возвращает только номер ошибки, без текстовых пояснений.  
 Чтобы включить текстовые пояснения для ошибок, передайте в конструктор хендлера "true" третьим параметром:

@@ -103,8 +103,8 @@ class Handler
 		}
 
 		$this->result = isset($this->result->response) ? $this->result->response : false;
-		$this->last_insert_id = ($request->post && isset($this->result->{$request->type}->add[0]->id))
-			? $this->result->{$request->type}->add[0]->id
+		$this->last_insert_id = ($request->post && isset($this->result->{$request->type}->{$request->action}[0]->id))
+			? $this->result->{$request->type}->{$request->action}[0]->id
 			: false;
 
 		return $this;
