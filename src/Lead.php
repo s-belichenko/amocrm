@@ -8,6 +8,7 @@ class Lead extends Entity
 	public $responsible_user_id;
 	public $tags;
 	public $status_id;
+	public $price;
 	public $custom_fields;
 
 	private $tags_array;
@@ -36,6 +37,13 @@ class Lead extends Entity
 	public function setStatusId($value)
 	{
 		$this->status_id = $value;
+
+		return $this;
+	}
+	
+	public function setPrice($value)
+	{
+		$this->price = $value;
 
 		return $this;
 	}
