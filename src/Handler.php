@@ -25,6 +25,10 @@ class Handler
 		$file_key = $config_dir.$this->domain.'@'.$this->user.'.key';
 		$file_config = $config_dir.'config@'.$this->domain.'.php';
 
+		if (!is_readable($config_dir) || !is_writable($config_dir)) {
+			throw new \Exception('Директория "config" должна быть доступна для чтения и записи');
+		}
+
 		if (!file_exists($file_key)) {
 			throw new \Exception('Отсутсвует файл с ключом');
 		}
