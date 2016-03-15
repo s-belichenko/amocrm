@@ -91,12 +91,19 @@ $api = new Handler('domain', 'user@example.com');
 $request_get = new Request(Request::GET, ['query' => '79161111111'], ['contacts', 'list']);
 
 /* Выполнение запроса */
-$result = $api->request($request)->result;
+$result = $api->request($request_get)->result;
 
 /* Результат запроса сохраняется в свойстве "result" объекта \AmoCRM\Handler()
 Содержит в себе объект, полученный от AmoCRM, какой конкретно - сверяйтесь с документацией для каждого метода
 Ошибка запроса выбросит исключение */
 $api->result == false, если ответ пустой (то есть контакты с таким телефоном не найдены) */
+```
+#### If-Modified-Since
+Вы также можете передать дополнительный параметр "IF-MODIFIED-SINCE", в котором указывается дата в формате D, d M Y H:i:s. При передаче этого параметра будут возвращены сущности, изменённые позже этой даты. 
+```php
+$request_get = new Request(Request::GET, ['query' => '79161111111'], ['contacts', 'list']);
+$request_get->setIfModifiedSince((new DateTime('2016-03-14'))->format(DateTime::RFC1123));
+$result = $api->request($request_get)->result;
 ```
 
 ### Создание новых объектов

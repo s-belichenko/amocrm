@@ -15,6 +15,7 @@ class Request
 	public $action;
 	public $params;
 
+	private $if_modified_since;
 	private $object;
 
 	public function __construct($request_type = null, $params = null, $object = null)
@@ -37,6 +38,16 @@ class Request
 				$this->createPostRequest();
 				break;
 		}
+	}
+
+	public function setIfModifiedSince($if_modified_since)
+	{
+		$this->if_modified_since = $if_modified_since;
+	}
+
+	public function getIfModifiedSince()
+	{
+		return empty($this->if_modified_since) ? false : $this->if_modified_since;
 	}
 
 	private function createAuthRequest()
