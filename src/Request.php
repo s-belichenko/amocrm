@@ -69,15 +69,7 @@ class Request
 	private function createGetRequest()
 	{
 		$this->url = 'v2/json/'.$this->object[0].'/'.$this->object[1];
-
-		if (count($this->params)) {
-			$i = 1;
-			foreach ($this->params as $key => $value) {
-				$this->url .= ($i == 1) ? '?' : '&';
-				$this->url .= $key.'='.$value;
-				$i++;
-			}
-		}
+		$this->url .= (count($this->params) ? '?'.http_build_query($this->params) : '');
 	}
 
 	private function createPostRequest()
