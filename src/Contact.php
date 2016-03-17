@@ -31,6 +31,8 @@ class Contact extends Entity
 	public function setCompanyName($value)
 	{
 		$this->company_name = $value;
+
+		return $this;
 	}
 
 	public function setResponsibleUserId($value)
