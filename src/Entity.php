@@ -6,7 +6,8 @@ class Entity
 {
 	public $id;
 	public $last_modified;
-	public $type;
+	public $key_name;
+	public $url_name;
 
 	public function setUpdate($id, $last_modified)
 	{

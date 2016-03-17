@@ -15,7 +15,8 @@ class Lead extends Entity
 
 	public function __construct()
 	{
-		$this->type = 'leads';
+		$this->key_name = 'leads';
+		$this->url_name = $this->key_name;
 		$this->custom_fields = [];
 		$this->tags_array = [];
 	}
@@ -40,7 +41,7 @@ class Lead extends Entity
 
 		return $this;
 	}
-	
+
 	public function setPrice($value)
 	{
 		$this->price = $value;

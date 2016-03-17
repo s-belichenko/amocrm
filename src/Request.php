@@ -68,7 +68,7 @@ class Request
 
 	private function createGetRequest()
 	{
-		$this->url = 'v2/json/'.$this->object[0].'/'.$this->object[1];
+		$this->url  = 'v2/json/'.$this->object[0].'/'.$this->object[1];
 		$this->url .= (count($this->params) ? '?'.http_build_query($this->params) : '');
 	}
 
@@ -78,17 +78,18 @@ class Request
 			$this->params = [$this->params];
 		}
 
-		$type = $this->params[0]->type;
+		$key_name = $this->params[0]->key_name;
+		$url_name = $this->params[0]->url_name;
 		$id = $this->params[0]->id;
 
 		$action = (isset($id)) ? 'update' : 'add';
 		$params = [];
-		$params['request'][$type][$action] = $this->params;
+		$params['request'][$key_name][$action] = $this->params;
 
 		$this->post = true;
-		$this->type = $type;
+		$this->type = $key_name;
 		$this->action = $action;
-		$this->url = 'v2/json/'.$this->type.'/set';
+		$this->url = 'v2/json/'.$url_name.'/set';
 		$this->params = $params;
 	}
 }
