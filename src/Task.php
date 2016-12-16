@@ -10,13 +10,15 @@ class Task extends Entity
     public $responsible_user_id;
     public $complete_till;
     public $text;
-
-    const CALL = 1;
-    const MEETING = 2;
-    const LETTER = 3;
+    
+    const TOUCH   = 0; // Связаться с клиентом
+    const CALL    = 1; // Позвонить клиенту
+    const MEETING = 2; // Встретиться с клиентом
+    const LETTER  = 3; // Написать email клиенту
 
     const TYPE_CONTACT = 1; // Првязка к контакту
-    const TYPE_LEAD = 2; // Привязка к сделке
+    const TYPE_LEAD    = 2; // Привязка к сделке
+    const TYPE_COMPANY = 3; // Привязка к компании
 
     public function __construct()
     {
