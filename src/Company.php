@@ -7,6 +7,7 @@ class Company extends Entity
 	public $name;
 	public $responsible_user_id;
 	public $tags;
+	public $type;
 	public $linked_leads_id;
 	public $custom_fields;
 
@@ -15,6 +16,7 @@ class Company extends Entity
 	public function __construct()
 	{
 		$this->key_name = 'contacts';
+		$this->type = 'contact';
 		$this->url_name = 'company';
 		$this->linked_leads_id = [];
 		$this->custom_fields = [];
