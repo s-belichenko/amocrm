@@ -4,24 +4,24 @@ namespace AmoCRM;
 
 class Company extends Entity
 {
-	public $name;
-	public $responsible_user_id;
-	public $tags;
-	public $type;
-	public $linked_leads_id;
-	public $custom_fields;
+    public $name;
+    public $responsible_user_id;
+    public $tags;
+    public $type;
+    public $linked_leads_id;
+    public $custom_fields;
 
-	private $tags_array;
+    private $tags_array;
 
-	public function __construct()
-	{
-		$this->key_name = 'contacts';
-		$this->type = 'contact';
-		$this->url_name = 'company';
-		$this->linked_leads_id = [];
-		$this->custom_fields = [];
-		$this->tags_array = [];
-	}
+    public function __construct()
+    {
+        $this->key_name = 'contacts';
+        $this->type = 'contact';
+        $this->url_name = 'company';
+        $this->linked_leads_id = [];
+        $this->custom_fields = [];
+        $this->tags_array = [];
+    }
 
 	public function setName($value)
 	{
