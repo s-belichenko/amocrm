@@ -10,11 +10,11 @@ class Task extends Entity
     public $responsible_user_id;
     public $complete_till;
     public $text;
-    
-    const TOUCH   = 0; // Связаться с клиентом
-    const CALL    = 1; // Позвонить клиенту
-    const MEETING = 2; // Встретиться с клиентом
-    const LETTER  = 3; // Написать email клиенту
+
+    const FOLLOW_UP = 1; // Связаться с клиентом
+    const CALL      = 1; // Позвонить клиенту (по сути аналогично предыдущему, но в Amo сделано именно так)
+    const MEETING   = 2; // Встретиться с клиентом
+    const LETTER    = 3; // Написать email клиенту
 
     const TYPE_CONTACT = 1; // Првязка к контакту
     const TYPE_LEAD    = 2; // Привязка к сделке
