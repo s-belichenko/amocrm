@@ -26,8 +26,8 @@ class Handler
         
         if(substr($this->configDir, -1) != '/') $this->configDir .= '/';
 
-        $file_key = $config_dir . $this->domain . '@' . $this->user . '.key';
-        $file_config = $config_dir . 'config@' . $this->domain . '.php';
+        $file_key = $this->configDir . $this->domain . '@' . $this->user . '.key';
+        $file_config = $this->configDir . 'config@' . $this->domain . '.php';
 
         if (!is_readable($this->configDir) || !is_writable($this->configDir)) {
             throw new \Exception('Директория "' . $this->configDir . '" должна быть доступна для чтения и записи');
