@@ -23,6 +23,8 @@ class Handler
 
         $config_dir = __DIR__ . '/../config/';
         $this->configDir = empty($configDir) ? $config_dir : $configDir;
+        
+        if(substr($this->configDir, -1) != '/') $this->configDir .= '/';
 
         $file_key = $config_dir . $this->domain . '@' . $this->user . '.key';
         $file_config = $config_dir . 'config@' . $this->domain . '.php';
