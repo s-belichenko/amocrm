@@ -7,6 +7,7 @@ class Handler
     private $domain;
     private $debug;
     private $errors;
+    private $configDir;
 
     public $user;
     public $key;
@@ -14,19 +15,20 @@ class Handler
     public $result;
     public $last_insert_id;
 
-    public function __construct($domain = null, $user = null, $debug = false)
+    public function __construct($domain = null, $user = null, $debug = false, $configDir = '')
     {
         $this->domain = $domain;
         $this->user = $user;
         $this->debug = $debug;
 
         $config_dir = __DIR__ . '/../config/';
+        $this->configDir = empty($configDir) ? $config_dir : $configDir;
 
         $file_key = $config_dir . $this->domain . '@' . $this->user . '.key';
         $file_config = $config_dir . 'config@' . $this->domain . '.php';
 
-        if (!is_readable($config_dir) || !is_writable($config_dir)) {
-            throw new \Exception('Директория "config" должна быть доступна для чтения и записи');
+        if (!is_readable($this->configDir) || !is_writable($this->configDir)) {
+            throw new \Exception('Директория "' . $this->configDir . '" должна быть доступна для чтения и записи');
         }
 
         if (!file_exists($file_key)) {
@@ -72,8 +74,8 @@ class Handler
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_COOKIEFILE, __DIR__ . '/../config/cookie.txt');
-        curl_setopt($ch, CURLOPT_COOKIEJAR, __DIR__ . '/../config/cookie.txt');
+        curl_setopt($ch, CURLOPT_COOKIEFILE, $this->configDir . 'cookie.txt');
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $this->configDir .'cookie.txt');
 
         if ($request->post) {
             curl_setopt($ch, CURLOPT_POST, true);
