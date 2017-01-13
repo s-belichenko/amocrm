@@ -1,12 +1,18 @@
 <?php
-
+/**
+ * Создание событий
+ */
 namespace AmoCRM;
 
 class Note extends Entity
 {
+    /** @var  int Идентификатор контакта или сделки */
     public $element_id;
+    /** @var  int Тип привязываемого элемента (контакт или сделка, см константы) */
     public $element_type;
+    /** @var  int Тип события (см константы) */
     public $note_type;
+    /** @var  string Текст */
     public $text;
 
     const DEAL_CREATED = 1;            // Сделка создана
@@ -26,34 +32,65 @@ class Note extends Entity
 
     const TYPE_CONTACT = 1;            // Привязка к контакту
     const TYPE_LEAD = 2;               // Привязка к сделке
-
+    
+    /**
+     * Note constructor.
+     */
     public function __construct()
     {
         $this->key_name = 'notes';
         $this->url_name = $this->key_name;
     }
-
+    
+    /**
+     * Идентификатор контакта или сделки
+     *
+     * @param $value
+     *
+     * @return $this
+     */
     public function setElementId($value)
     {
         $this->element_id = $value;
 
         return $this;
     }
-
+    
+    /**
+     * Тип привязываемого элемента (контакт или сделка, см константы)
+     *
+     * @param $value
+     *
+     * @return $this
+     */
     public function setElementType($value)
     {
         $this->element_type = $value;
 
         return $this;
     }
-
+    
+    /**
+     * Тип события (см константы)
+     *
+     * @param $value
+     *
+     * @return $this
+     */
     public function setNoteType($value)
     {
         $this->note_type = $value;
 
         return $this;
     }
-
+    
+    /**
+     * Текст
+     *
+     * @param $value
+     *
+     * @return $this
+     */
     public function setText($value)
     {
         $this->text = $value;
