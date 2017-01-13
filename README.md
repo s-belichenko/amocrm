@@ -196,11 +196,83 @@ try
 	$lead = $api->last_insert_id;
 	
 	/* Поиск контакта */
-	$contactList = new ContactsList();
-	$result = $contactList->getByQuery($api, 'mavsan@ya.ru');
-	
-	if($result === null)
-	
+        $contactList = new ContactsList();
+        $result = $contactList->getByQuery($api, $email);
+        
+        if ($result === false) {
+            // контакт не найден, надо создать
+            $contact = new Contact();
+            $contact
+                /* Имя */
+                ->setName($name)
+                /* Назначаем ответственного менеджера */
+                ->setResponsibleUserId($api->config['ResponsibleUserId'])
+                /* Привязка сделки */
+                ->setLinkedLeadsId($lead)
+                /* Установка тегов */
+                ->setTags(['Тег 1', 'Тег 2'])
+                /* Установка тегов, так тоже можно */
+                ->setTags('Тег 3')
+                /* Установка дополнительных полей, 1й параметр - это код поля в
+                справочнике, 2й параметр - значение, 3й параметр - тип ENUM значения
+                (см. информацию о аккаунте) */
+                /* Email */
+                ->setCustomField($api->config['ContactFieldEmail'], $email, 'WORK')
+                /* Телефон */
+                ->setCustomField($api->config['ContactFieldPhone'], $phone, 'MOB');
+        } else {
+            /** @var Contact $contact */
+            $contact = $result[0];
+            $contact
+                ->setUpdateIncrementLastModified()
+                /* Привязка сделки */
+                ->setLinkedLeadsId($lead)
+                /* При необходимости можно указать дополнительные поля, по-аналогии
+                с созданием контакта. При этом имейте ввиду, что если у контакта
+                уже был ранее указан телефон/email/что_то_другое - новый параметр
+                будет добавлен к этому спику, а не перезапишет все предыдущие значения,
+                при этом если данные дублируются - добавление дубликата не произойдет.
+                Т.е. раньше уже был телефон: 123456789, из формы прислали еще один:
+                987654321, то после выполнения: */
+                ->setCustomField($api->config['ContactFieldPhone'], $phone, 'MOB');
+                /* в карточке контакта будет 2 телефона: 123456789 и 987654321, если
+                же прислали телефон 123456789, то в карточке по-прежнему будет один
+                телефон, без дублирования */
+        }
+        
+        /* Создаем заметку с сообщением из формы */
+        $note = new Note();
+        $note
+            /* Привязка к созданной сделке*/
+            ->setElementId($lead)
+            /* Тип привязки (к сделке или к контакту). Смотрите комментарии в Note.php */
+            ->setElementType(Note::TYPE_LEAD)
+            /* Тип заметки (здесь - обычная текстовая). Смотрите комментарии в Note.php */
+            ->setNoteType(Note::COMMON)
+            /* Текст заметки*/
+            ->setText($message);
+        
+        /* Создаем задачу для менеджера обработать заявку */
+        $task = new Task();
+        $task
+            /* Привязка к созданной сделке */
+            ->setElementId($lead)
+            /* Тип привязки (к сделке или к контакту) Смотрите комментарии в Task.php */
+            ->setElementType(Task::TYPE_LEAD)
+            /* Тип задачи. Смотрите комментарии в Task.php */
+            ->setTaskType(Task::CALL)
+            /* ID ответственного за задачу менеджера */
+            ->setResponsibleUserId($api->config['ResponsibleUserId'])
+            /* Дедлайн задачи */
+            ->setCompleteTill(time() + 60 * 2)
+            /* Текст задачи */
+            ->setText('Обработать заявку');
+        
+        /* Отправляем все в AmoCRM */
+        $api->request(new Request(Request::SET, $contact));
+        $api->request(new Request(Request::SET, $note));
+        $api->request(new Request(Request::SET, $task));
+        
 } catch (AmoCRMException $e) {
 	echo $e->getMessage();
 } catch (\Exception $e) {
