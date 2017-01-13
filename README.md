@@ -22,6 +22,8 @@
 ---
 
 ## Установка
+
+### Установка версии 1.4
 Добавьте в блок "require" в composer.json вашего проекта
 ```json
 "nabarabane/amocrm": "~1.1"
@@ -30,6 +32,22 @@
 Или введите в консоли
 ```sh
 composer require nabarabane/amocrm:"~1.1"
+```
+
+### Установка версии 2
+Добавьте блок:
+```json
+"repositories": [
+    {
+      "url": "https://github.com/mavsan/amocrm",
+      "type": "git"
+    }
+  ],
+```
+
+Добавьте в блок "require" в composer.json вашего проекта
+```json
+"nabarabane/amocrm": "~2.0"
 ```
 
 ## Подготовка к работе и настройка
@@ -54,17 +72,7 @@ return [
 ```
 
 Номера полей вашего аккаунта можно получить так:
-```php
-use AmoCRM\Handler;
-use AmoCRM\Request;
 
-require('autoload.php');
-
-$api = new Handler('domain', 'user@example.com');
-print_r($api->request(new Request(Request::INFO))->result);
-```
-
-Или так:
 ```php
 use use \AmoCRM\Account;
 
@@ -73,6 +81,8 @@ require('autoload.php');
 $api = new Handler('domain', 'user@example.com');
 
 var_dump(Account::getAccountInfo($api));
+// или:
+print_r(Account::getAccountInfo($api));
 ```
 
 На страницу будет выведена вся информация об аккаунте.  
@@ -87,13 +97,33 @@ var_dump(Account::getAccountInfo($api));
 
 ```php
 use \AmoCRM\Handler;
-use \AmoCRM\Request;
 
 require('autoload.php');
 
 /* Создание экземпляра API, где "domain" - имя вашего домена в AmoCRM, а
 "user@example.com" - email пользователя, от чьего имени будут совершаться запросы */
-$api = new Handler('domain', 'user@example.com');
+$api = new Handler('domain', 'user@example.com', 'путь к файлам конфигурации, если они вынесены отдельно');
+```
+
+Далее можно использовать один из двух вариантов:
+
+```php
+/* Вариант 1: */
+use \AmoCRM\Contact;
+use \AmoCRM\ContactsList;
+
+$contactList = new ContactsList();
+/* поиск по произвольным данным (телефон, email...) */
+$result = $contactList->getByQuery($api, 'homer@simpson.com');
+/* или поиск по идентификатору пользователя в AmoCRM */
+$result = $contactList->getByID($api, 123456790);
+
+/* В $result будет или массив экземпляров класса Contact или false, если ничего не найдено */
+```
+
+```php
+/* Вариант 2 (лучше не использовать, это старый путь просто для иллюстрации, как еще можно сделать): */
+use \AmoCRM\Request;
 
 /* Создание экземляра запроса */
 
@@ -111,38 +141,33 @@ $result = $api->request($request_get)->result;
 Ошибка запроса выбросит исключение */
 $api->result == false, если ответ пустой (то есть контакты с таким телефоном не найдены) */
 ```
-#### If-Modified-Since
-Вы также можете передать дополнительный параметр "IF-MODIFIED-SINCE", в котором указывается дата в формате D, d M Y H:i:s. При передаче этого параметра будут возвращены сущности, изменённые позже этой даты. 
-```php
-$request_get = new Request(Request::GET, ['query' => '79161111111'], ['contacts', 'list']);
-$request_get->setIfModifiedSince((new DateTime('2016-03-14'))->format(DateTime::RFC1123));
-$result = $api->request($request_get)->result;
-```
 
 ### Создание новых объектов
 Пример рабочего кода, который покрывает все доступные возможности библиотеки
 
 ```php
+use AmoCRM\AmoCRMException;
 use \AmoCRM\Handler;
 use \AmoCRM\Request;
 use \AmoCRM\Lead;
 use \AmoCRM\Contact;
 use \AmoCRM\Note;
 use \AmoCRM\Task;
+use \AmoCRM\ContactsList;
 
-require('autoload.php');
+require('vendor/autoload.php');
 
-/* Предположим, пользователь ввел какие-то данные в форму на сайте */
-$name = 'Пользователь';
-$phone = '79161111111';
-$email = 'user@user.com';
-$message = 'Здравствуйте';
-
-/* Оборачиваем в try{} catch(){}, чтобы отлавливать исключения */
-try {
-	$api = new Handler('domain', 'user@example.com');
-
-
+try
+{
+	/* Данные, полученные из формы */
+	$name = 'Пользователь';
+	$phone = '79161111111';
+	$email = 'user@user.com';
+	$message = 'Здравствуйте';
+	
+	/* Подключение к API AmoCRM */
+	$api = new Handler('domain', 'homer@simpson.com', false, __DIR__ . '/config');
+	
 	/* Создаем сделку,
 	$api->config содержит в себе массив конфига,
 	который вы создавали в начале */
@@ -169,87 +194,19 @@ try {
 
 	/* Сохраняем ID новой сделки для использования в дальнейшем */
 	$lead = $api->last_insert_id;
-
-
-	/* Создаем контакт */
-	$contact = new Contact();
-	$contact
-		/* Имя */
-		->setName($name)
-		/* Назначаем ответственного менеджера */
-		->setResponsibleUserId($api->config['ResponsibleUserId'])
-		/* Привязка созданной сделки к контакту */
-		->setLinkedLeadsId($lead)
-		/* Кастомные поля */
-		->setCustomField(
-			$api->config['ContactFieldPhone'],
-			$phone, // Номер телефона
-			'MOB' // MOB - это ENUM для этого поля, список доступных значений смотрите в информации об аккаунте
-		) 
-		->setCustomField(
-			$api->config['ContactFieldEmail'],
-			$email, // Email
-			'WORK' // WORK - это ENUM для этого поля, список доступных значений смотрите в информации об аккаунте
-		) 
-		/* Теги. Строка - если один тег, массив - если несколько */
-		->setTags(['тег контакта 1', 'тег контакта 2']);
-
-	/* Проверяем по емейлу, есть ли пользователь в нашей базе */
-	$api->request(new Request(Request::GET, ['query' => $email], ['contacts', 'list']));
-
-	/* Если пользователя нет, вернется false, если есть - объект пользователя */
-	$contact_exists = ($api->result) ? $api->result->contacts[0] : false;
-
-	/* Если такой пользователь уже есть - мержим поля */
-	if ($contact_exists) {
-		$contact
-			/* Указываем, что пользователь будет обновлен */
-			->setUpdate($contact_exists->id, $contact_exists->last_modified + 1)
-			/* Ответственного менеджера оставляем кто был */
-			->setResponsibleUserId($contact_exists->responsible_user_id)
-			/* Старые привязанные сделки тоже сохраняем */
-			->setLinkedLeadsId($contact_exists->linked_leads_id);
-	}
-
-
-	/* Создаем заметку с сообщением из формы */
-	$note = new Note();
-	$note
-		/* Привязка к созданной сделке*/
-		->setElementId($lead)
-		/* Тип привязки (к сделке или к контакту). Смотрите комментарии в Note.php */
-		->setElementType(Note::TYPE_LEAD)
-		/* Тип заметки (здесь - обычная текстовая). Смотрите комментарии в Note.php */
-		->setNoteType(Note::COMMON)
-		/* Текст заметки*/
-		->setText($message);
-
-
-
-	/* Создаем задачу для менеджера обработать заявку */
-	$task = new Task();
-	$task
-		/* Привязка к созданной сделке */
-		->setElementId($lead)
-		/* Тип привязки (к сделке или к контакту) Смотрите комментарии в Task.php */
-		->setElementType(Task::TYPE_LEAD)
-		/* Тип задачи. Смотрите комментарии в Task.php */
-		->setTaskType(Task::CALL)
-		/* ID ответственного за задачу менеджера */
-		->setResponsibleUserId($api->config['ResponsibleUserId'])
-		/* Дедлайн задачи */
-		->setCompleteTill(time() + 60 * 2)
-		/* Текст задачи */
-		->setText('Обработать заявку');
-
-
-	/* Отправляем все в AmoCRM */
-	$api->request(new Request(Request::SET, $contact));
-	$api->request(new Request(Request::SET, $note));
-	$api->request(new Request(Request::SET, $task));
+	
+	/* Поиск контакта */
+	$contactList = new ContactsList();
+	$result = $contactList->getByQuery($api, 'mavsan@ya.ru');
+	
+	if($result === null)
+	
+} catch (AmoCRMException $e) {
+	echo $e->getMessage();
 } catch (\Exception $e) {
 	echo $e->getMessage();
 }
+
 ```
 
 ### Мультизагрузка объектов
@@ -268,14 +225,14 @@ try {
 	/* Первая сделка */
 	$lead1 = new Lead();
 	$lead1
-	    ->setName('Заявка 1') 
+		->setName('Заявка 1') 
 		->setResponsibleUserId($api->config['ResponsibleUserId'])
 		->setStatusId($api->config['LeadStatusId']);
 	
 	/* Вторая сделка */
 	$lead2 = new Lead();
 	$lead2
-	    ->setName('Заявка 2') 
+		->setName('Заявка 2') 
 		->setResponsibleUserId($api->config['ResponsibleUserId'])
 		->setStatusId($api->config['LeadStatusId']);
 
