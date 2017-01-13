@@ -64,6 +64,17 @@ $api = new Handler('domain', 'user@example.com');
 print_r($api->request(new Request(Request::INFO))->result);
 ```
 
+Или так:
+```php
+use use \AmoCRM\Account;
+
+require('autoload.php');
+
+$api = new Handler('domain', 'user@example.com');
+
+var_dump(Account::getAccountInfo($api));
+```
+
 На страницу будет выведена вся информация об аккаунте.  
 Выбираете номера нужных полей (номера пользователей, номера кастомных полей сделок и т.д.) и сохраняете в конфиг с понятными вам названиями.
 
