@@ -12,7 +12,7 @@
 namespace AmoCRM;
 
 
-class CustomField
+class CustomField implements \JsonSerializable
 {
     protected $id;
     
@@ -121,5 +121,10 @@ class CustomField
     public function getId()
     {
         return $this->id;
+    }
+    
+    function jsonSerialize()
+    {
+        return $this->getCustomField();
     }
 }
