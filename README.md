@@ -22,6 +22,8 @@
 ---
 
 ## Установка
+
+### Установка версии 1.4
 Добавьте в блок "require" в composer.json вашего проекта
 ```json
 "nabarabane/amocrm": "~1.1"
@@ -32,11 +34,29 @@
 composer require nabarabane/amocrm:"~1.1"
 ```
 
+### Установка версии 2
+Добавьте блок:
+```json
+"repositories": [
+    {
+      "url": "https://github.com/mavsan/amocrm",
+      "type": "git"
+    }
+  ],
+```
+
+Добавьте в блок "require" в composer.json вашего проекта
+```json
+"nabarabane/amocrm": "~2.0"
+```
+
 ## Подготовка к работе и настройка
 Создайте папку "config" в корне пакета, куда положите два файла:
 - config@{ваш-домен-в-amocrm}.php
 - {ваш-домен-в-amocrm}@{email-пользователя-для-запросов}.key
 Директория должна быть доступна для записи, туда сохраняются куки, которые необходимы для работы API.
+
+Так-же есть возможность указать папку, где хранятся файлы конфигруации и куда будут сохраняться куки curl. Для этого при создании экземпляра объекта `Handler` последним параметром необходимо передать путь к папке конфигурации.
 
 Файл с конфигом используется для хранения номеров кастомных полей из AmoCRM, которые вы будете использовать в своей работе, и должен возвращать ассоциативный массив, например:
 ```php
@@ -44,6 +64,8 @@ return [
 	'ResponsibleUserId' => 330242, //ID ответственного менеджера
 	'LeadStatusId' => 8156376, // ID первого статуса сделки
 	'ContactFieldPhone' => 1426544, // ID поля номера телефона
+	'ContactFieldPhoneMOB' => 3972237, // ID поля ENUM - мобильный телефон
+	'ContactFieldPhoneWORK' => 3972233, // ID поля ENUM - рабочий телефон
 	'ContactFieldEmail' => 1426546, // ID поля емейла
 	'LeadFieldCustom' => 1740351, // ID кастомного поля сделки
 	'LeadFieldCustomValue1' => 4055517, // ID первого значения кастомного поля сделки
@@ -52,14 +74,17 @@ return [
 ```
 
 Номера полей вашего аккаунта можно получить так:
+
 ```php
-use AmoCRM\Handler;
-use AmoCRM\Request;
+use use \AmoCRM\Account;
 
 require('autoload.php');
 
 $api = new Handler('domain', 'user@example.com');
-print_r($api->request(new Request(Request::INFO))->result);
+
+var_dump(Account::getAccountInfo($api));
+// или:
+print_r(Account::getAccountInfo($api));
 ```
 
 На страницу будет выведена вся информация об аккаунте.  
@@ -74,13 +99,33 @@ print_r($api->request(new Request(Request::INFO))->result);
 
 ```php
 use \AmoCRM\Handler;
-use \AmoCRM\Request;
 
 require('autoload.php');
 
 /* Создание экземпляра API, где "domain" - имя вашего домена в AmoCRM, а
 "user@example.com" - email пользователя, от чьего имени будут совершаться запросы */
-$api = new Handler('domain', 'user@example.com');
+$api = new Handler('domain', 'user@example.com', 'путь к файлам конфигурации, если они вынесены отдельно');
+```
+
+Далее можно использовать один из двух вариантов:
+
+```php
+/* Вариант 1: */
+use \AmoCRM\Contact;
+use \AmoCRM\ContactsList;
+
+$contactList = new ContactsList();
+/* поиск по произвольным данным (телефон, email...) */
+$result = $contactList->getByQuery($api, 'homer@simpson.com');
+/* или поиск по идентификатору пользователя в AmoCRM */
+$result = $contactList->getByID($api, 123456790);
+
+/* В $result будет или массив экземпляров класса Contact или false, если ничего не найдено */
+```
+
+```php
+/* Вариант 2 (лучше не использовать, это старый путь просто для иллюстрации, как еще можно сделать): */
+use \AmoCRM\Request;
 
 /* Создание экземляра запроса */
 
@@ -98,38 +143,33 @@ $result = $api->request($request_get)->result;
 Ошибка запроса выбросит исключение */
 $api->result == false, если ответ пустой (то есть контакты с таким телефоном не найдены) */
 ```
-#### If-Modified-Since
-Вы также можете передать дополнительный параметр "IF-MODIFIED-SINCE", в котором указывается дата в формате D, d M Y H:i:s. При передаче этого параметра будут возвращены сущности, изменённые позже этой даты. 
-```php
-$request_get = new Request(Request::GET, ['query' => '79161111111'], ['contacts', 'list']);
-$request_get->setIfModifiedSince((new DateTime('2016-03-14'))->format(DateTime::RFC1123));
-$result = $api->request($request_get)->result;
-```
 
 ### Создание новых объектов
 Пример рабочего кода, который покрывает все доступные возможности библиотеки
 
 ```php
+use AmoCRM\AmoCRMException;
 use \AmoCRM\Handler;
 use \AmoCRM\Request;
 use \AmoCRM\Lead;
 use \AmoCRM\Contact;
 use \AmoCRM\Note;
 use \AmoCRM\Task;
+use \AmoCRM\ContactsList;
 
-require('autoload.php');
+require('vendor/autoload.php');
 
-/* Предположим, пользователь ввел какие-то данные в форму на сайте */
-$name = 'Пользователь';
-$phone = '79161111111';
-$email = 'user@user.com';
-$message = 'Здравствуйте';
-
-/* Оборачиваем в try{} catch(){}, чтобы отлавливать исключения */
-try {
-	$api = new Handler('domain', 'user@example.com');
-
-
+try
+{
+	/* Данные, полученные из формы */
+	$name = 'Пользователь';
+	$phone = '79161111111';
+	$email = 'user@user.com';
+	$message = 'Здравствуйте';
+	
+	/* Подключение к API AmoCRM */
+	$api = new Handler('domain', 'homer@simpson.com', false, __DIR__ . '/config');
+	
 	/* Создаем сделку,
 	$api->config содержит в себе массив конфига,
 	который вы создавали в начале */
@@ -156,88 +196,104 @@ try {
 
 	/* Сохраняем ID новой сделки для использования в дальнейшем */
 	$lead = $api->last_insert_id;
-
-
-	/* Создаем контакт */
-	$contact = new Contact();
-	$contact
-		/* Имя */
-		->setName($name)
-		/* Назначаем ответственного менеджера */
-		->setResponsibleUserId($api->config['ResponsibleUserId'])
-		/* Привязка созданной сделки к контакту */
-		->setLinkedLeadsId($lead)
-		/* Кастомные поля */
-		->setCustomField(
-			$api->config['ContactFieldPhone'],
-			$phone, // Номер телефона
-			'MOB' // MOB - это ENUM для этого поля, список доступных значений смотрите в информации об аккаунте
-		) 
-		->setCustomField(
-			$api->config['ContactFieldEmail'],
-			$email, // Email
-			'WORK' // WORK - это ENUM для этого поля, список доступных значений смотрите в информации об аккаунте
-		) 
-		/* Теги. Строка - если один тег, массив - если несколько */
-		->setTags(['тег контакта 1', 'тег контакта 2']);
-
-	/* Проверяем по емейлу, есть ли пользователь в нашей базе */
-	$api->request(new Request(Request::GET, ['query' => $email], ['contacts', 'list']));
-
-	/* Если пользователя нет, вернется false, если есть - объект пользователя */
-	$contact_exists = ($api->result) ? $api->result->contacts[0] : false;
-
-	/* Если такой пользователь уже есть - мержим поля */
-	if ($contact_exists) {
-		$contact
-			/* Указываем, что пользователь будет обновлен */
-			->setUpdate($contact_exists->id, $contact_exists->last_modified + 1)
-			/* Ответственного менеджера оставляем кто был */
-			->setResponsibleUserId($contact_exists->responsible_user_id)
-			/* Старые привязанные сделки тоже сохраняем */
-			->setLinkedLeadsId($contact_exists->linked_leads_id);
-	}
-
-
-	/* Создаем заметку с сообщением из формы */
-	$note = new Note();
-	$note
-		/* Привязка к созданной сделке*/
-		->setElementId($lead)
-		/* Тип привязки (к сделке или к контакту). Смотрите комментарии в Note.php */
-		->setElementType(Note::TYPE_LEAD)
-		/* Тип заметки (здесь - обычная текстовая). Смотрите комментарии в Note.php */
-		->setNoteType(Note::COMMON)
-		/* Текст заметки*/
-		->setText($message);
-
-
-
-	/* Создаем задачу для менеджера обработать заявку */
-	$task = new Task();
-	$task
-		/* Привязка к созданной сделке */
-		->setElementId($lead)
-		/* Тип привязки (к сделке или к контакту) Смотрите комментарии в Task.php */
-		->setElementType(Task::TYPE_LEAD)
-		/* Тип задачи. Смотрите комментарии в Task.php */
-		->setTaskType(Task::CALL)
-		/* ID ответственного за задачу менеджера */
-		->setResponsibleUserId($api->config['ResponsibleUserId'])
-		/* Дедлайн задачи */
-		->setCompleteTill(time() + 60 * 2)
-		/* Текст задачи */
-		->setText('Обработать заявку');
-
-
-	/* Отправляем все в AmoCRM */
-	$api->request(new Request(Request::SET, $contact));
-	$api->request(new Request(Request::SET, $note));
-	$api->request(new Request(Request::SET, $task));
+	
+	/* Поиск контакта */
+        $contactList = new ContactsList();
+        $result = $contactList->getByQuery($api, $email);
+        
+        if ($result === false) {
+            // контакт не найден, надо создать
+            $contact = new Contact();
+            $contact
+                /* Имя */
+                ->setName($name)
+                /* Назначаем ответственного менеджера */
+                ->setResponsibleUserId($api->config['ResponsibleUserId'])
+                /* Привязка сделки */
+                ->setLinkedLeadsId($lead)
+                /* Установка тегов */
+                ->setTags(['Тег 1', 'Тег 2'])
+                /* Установка тегов, так тоже можно */
+                ->setTags('Тег 3')
+                /* Установка дополнительных полей, 1й параметр - это код поля в
+                справочнике, 2й параметр - значение, 3й параметр - тип ENUM значения
+                (см. информацию о аккаунте) */
+                /* Email */
+                ->setCustomField($api->config['ContactFieldEmail'], $email, 'WORK')
+                /* Телефон */
+                ->setCustomField($api->config['ContactFieldPhone'], $phone, 'MOB');
+        } else {
+            /** @var Contact $contact */
+            $contact = $result[0];
+            $contact
+                ->setUpdateIncrementLastModified()
+                /* Привязка сделки */
+                ->setLinkedLeadsId($lead)
+                /* При необходимости можно указать дополнительные поля, по-аналогии
+                с созданием контакта. При этом имейте ввиду, что если у контакта
+                уже был ранее указан телефон/email/что_то_другое - новый параметр
+                будет добавлен к этому спику, а не перезапишет все предыдущие значения,
+                при этом если данные дублируются - добавление дубликата не произойдет.
+                Т.е. раньше уже был телефон: 123456789, из формы прислали еще один:
+                987654321, то после выполнения: */
+                ->setCustomField($api->config['ContactFieldPhone'], $phone, $api->config['ContactFieldPhoneMOB']);
+                /* в карточке контакта будет 2 телефона: 123456789 и 987654321, если
+                же прислали телефон 123456789, то в карточке по-прежнему будет один
+                телефон, без дублирования, почему здесь передано $api->config['ContactFieldPhoneMOB'], 
+                а не 'MOB' см. ниже, в разделе "Обновление дополнительных полей контакта" */
+        }
+        
+        /* Создаем заметку с сообщением из формы */
+        $note = new Note();
+        $note
+            /* Привязка к созданной сделке*/
+            ->setElementId($lead)
+            /* Тип привязки (к сделке или к контакту). Смотрите комментарии в Note.php */
+            ->setElementType(Note::TYPE_LEAD)
+            /* Тип заметки (здесь - обычная текстовая). Смотрите комментарии в Note.php */
+            ->setNoteType(Note::COMMON)
+            /* Текст заметки*/
+            ->setText($message);
+        
+        /* Создаем задачу для менеджера обработать заявку */
+        $task = new Task();
+        $task
+            /* Привязка к созданной сделке */
+            ->setElementId($lead)
+            /* Тип привязки (к сделке или к контакту) Смотрите комментарии в Task.php */
+            ->setElementType(Task::TYPE_LEAD)
+            /* Тип задачи. Смотрите комментарии в Task.php */
+            ->setTaskType(Task::CALL)
+            /* ID ответственного за задачу менеджера */
+            ->setResponsibleUserId($api->config['ResponsibleUserId'])
+            /* Дедлайн задачи */
+            ->setCompleteTill(time() + 60 * 2)
+            /* Текст задачи */
+            ->setText('Обработать заявку');
+        
+        /* Отправляем все в AmoCRM */
+        $api->request(new Request(Request::SET, $contact));
+        $api->request(new Request(Request::SET, $note));
+        $api->request(new Request(Request::SET, $task));
+        
+} catch (AmoCRMException $e) {
+	echo $e->getMessage();
 } catch (\Exception $e) {
 	echo $e->getMessage();
 }
+
 ```
+
+### Обновление дополнительных полей контакта
+Обратите внимание на тот факт, что в информации о контакте в дополнительных полях вместо `ENUM` возвращается код этого 
+`ENUM`, например у меня для телефонов:
+ - 3972233 для _WORK_;
+ - 3972237 для _MOB_.
+ 
+Оказалось, что если обновлять данные - необходимо для новых данных и старых данных передавать значения полей `ENUM` в одинаковом виде: 
+или коды или значения нужных `ENUM`. Если для одних данных передать код, а для других `ENUM` - в лучшем случае у контакта 
+останутся только старые данные, в худшем пропадут и они. Поэтому, чтобы избежать подобного при обновлении данных для 
+новых значений надо передавать именно код `ENUM`, а не значение.
 
 ### Мультизагрузка объектов
 Есть возможность создавать одновременно несколько объектов одного типа и отправлять их в amoCRM одним запросом
@@ -255,14 +311,14 @@ try {
 	/* Первая сделка */
 	$lead1 = new Lead();
 	$lead1
-	    ->setName('Заявка 1') 
+		->setName('Заявка 1') 
 		->setResponsibleUserId($api->config['ResponsibleUserId'])
 		->setStatusId($api->config['LeadStatusId']);
 	
 	/* Вторая сделка */
 	$lead2 = new Lead();
 	$lead2
-	    ->setName('Заявка 2') 
+		->setName('Заявка 2') 
 		->setResponsibleUserId($api->config['ResponsibleUserId'])
 		->setStatusId($api->config['LeadStatusId']);
 

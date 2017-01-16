@@ -7,6 +7,7 @@ class Handler
     private $domain;
     private $debug;
     private $errors;
+    private $configDir;
 
     public $user;
     public $key;
@@ -14,38 +15,41 @@ class Handler
     public $result;
     public $last_insert_id;
 
-    public function __construct($domain = null, $user = null, $debug = false)
+    public function __construct($domain = null, $user = null, $debug = false, $configDir = '')
     {
         $this->domain = $domain;
         $this->user = $user;
         $this->debug = $debug;
 
         $config_dir = __DIR__ . '/../config/';
+        $this->configDir = empty($configDir) ? $config_dir : $configDir;
+        
+        if(substr($this->configDir, -1) != '/') $this->configDir .= '/';
 
-        $file_key = $config_dir . $this->domain . '@' . $this->user . '.key';
-        $file_config = $config_dir . 'config@' . $this->domain . '.php';
+        $file_key = $this->configDir . $this->domain . '@' . $this->user . '.key';
+        $file_config = $this->configDir . 'config@' . $this->domain . '.php';
 
-        if (!is_readable($config_dir) || !is_writable($config_dir)) {
-            throw new \Exception('Директория "config" должна быть доступна для чтения и записи');
+        if (!is_readable($this->configDir) || !is_writable($this->configDir)) {
+            throw new AmoCRMException('Директория "' . $this->configDir . '" должна быть доступна для чтения и записи');
         }
 
         if (!file_exists($file_key)) {
-            throw new \Exception('Отсутсвует файл с ключом');
+            throw new AmoCRMException('Отсутсвует файл с ключом');
         }
 
         if (!file_exists($file_config)) {
-            throw new \Exception('Отсутсвует файл с конфигурацией');
+            throw new AmoCRMException('Отсутсвует файл с конфигурацией');
         }
 
         $key = trim(file_get_contents($file_key));
         $config = trim(file_get_contents($file_config));
 
         if (empty($key)) {
-            throw new \Exception('Файл с ключом пуст');
+            throw new AmoCRMException('Файл с ключом пуст');
         }
 
         if (empty($config)) {
-            throw new \Exception('Файл с конфигурацией пуст');
+            throw new AmoCRMException('Файл с конфигурацией пуст');
         }
 
         if ($this->debug) {
@@ -72,8 +76,8 @@ class Handler
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_COOKIEFILE, __DIR__ . '/../config/cookie.txt');
-        curl_setopt($ch, CURLOPT_COOKIEJAR, __DIR__ . '/../config/cookie.txt');
+        curl_setopt($ch, CURLOPT_COOKIEFILE, $this->configDir . 'cookie.txt');
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $this->configDir .'cookie.txt');
 
         if ($request->post) {
             curl_setopt($ch, CURLOPT_POST, true);
@@ -87,7 +91,7 @@ class Handler
         curl_close($ch);
 
         if ($error) {
-            throw new \Exception($error);
+            throw new AmoCRMException($error);
         }
 
         $this->result = json_decode($result);
@@ -108,7 +112,7 @@ class Handler
                 ], JSON_UNESCAPED_UNICODE);
             }
 
-            throw new \Exception($message);
+            throw new AmoCRMException($message);
         }
 
         $this->result = isset($this->result->response) ? $this->result->response : false;

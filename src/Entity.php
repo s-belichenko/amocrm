@@ -16,4 +16,11 @@ class Entity
 
         return $this;
     }
+    
+    public function setUpdateIncrementLastModified()
+    {
+        $this->last_modified++;
+        
+        return $this;
+    }
 }
