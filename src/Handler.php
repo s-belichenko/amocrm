@@ -21,11 +21,11 @@ class Handler
         $this->user = $user;
         $this->debug = $debug;
 
-        $config_dir = __DIR__ . '/../config/';
-        $this->configDir = empty($configDir) ? $config_dir : $configDir;
+        $default_config_dir = __DIR__ . '/../config/';
+        $this->configDir = empty($configDir) ? $default_config_dir : $configDir;
 
-        $file_key = $config_dir . $this->domain . '@' . $this->user . '.key';
-        $file_config = $config_dir . 'config@' . $this->domain . '.php';
+        $file_key = $this->configDir . $this->domain . '@' . $this->user . '.key';
+        $file_config = $this->configDir . 'config@' . $this->domain . '.php';
 
         if (!is_readable($this->configDir) || !is_writable($this->configDir)) {
             throw new \Exception('Директория "' . $this->configDir . '" должна быть доступна для чтения и записи');
@@ -51,7 +51,7 @@ class Handler
         }
 
         if ($this->debug) {
-            $this->errors = @json_decode(trim(file_get_contents($config_dir . 'errors.json')));
+            $this->errors = @json_decode(trim(file_get_contents($this->configDir . 'errors.json')));
         }
 
         $this->key = $key;
