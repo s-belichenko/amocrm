@@ -22,7 +22,13 @@ class Handler
         $this->debug = $debug;
 
         $default_config_dir = __DIR__ . '/../config/';
-        $this->configDir = empty($configDir) ? $default_config_dir : $configDir;
+		$this->configDir    = empty( $configDir ) ?
+			$default_config_dir
+			:
+			preg_match( "/\/$/", $configDir ) ?
+				$configDir
+				:
+				$configDir . "/";
 
         $file_key = $this->configDir . $this->domain . '@' . $this->user . '.key';
         $file_config = $this->configDir . 'config@' . $this->domain . '.php';
