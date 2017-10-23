@@ -64,7 +64,7 @@ class Handler {
 		$this->request( new Request( Request::AUTH, $this ) );
 	}
 
-	public function request( Request $request ) {
+	public function request( Request $request, $arrayable = false ) {
 		$headers = [ 'Content-Type: application/json' ];
 		if ( $date = $request->getIfModifiedSince() ) {
 			$headers[] = 'IF-MODIFIED-SINCE: ' . $date;
@@ -116,7 +116,13 @@ class Handler {
 			throw new \Exception( $message );
 		}
 
-		$this->result         = isset( $this->result->response ) ? $this->result->response : false;
+		$this->result         = isset( $this->result->response ) ?
+			( $arrayable ) ?
+				json_decode( json_encode( $this->result->response ), true )
+				:
+				$this->result->response
+			:
+			false;
 		$this->last_insert_id = ( $request->post && isset( $this->result->{$request->type}->{$request->action}[0]->id ) )
 			? $this->result->{$request->type}->{$request->action}[0]->id
 			: false;
