@@ -2,8 +2,7 @@
 
 namespace AmoCRM;
 
-class Contact extends Entity
-{
+class Contact extends Entity {
 	public $name;
 	public $company_name;
 	public $responsible_user_id;
@@ -13,70 +12,98 @@ class Contact extends Entity
 
 	private $tags_array;
 
-	public function __construct()
-	{
-		$this->key_name = 'contacts';
-		$this->url_name = $this->key_name;
+	/**
+	 * Contact constructor.
+	 */
+	public function __construct() {
+		$this->key_name        = 'contacts';
+		$this->url_name        = $this->key_name;
 		$this->linked_leads_id = [];
-		$this->custom_fields = [];
-		$this->tags_array = [];
+		$this->custom_fields   = [];
+		$this->tags_array      = [];
 	}
 
-	public function setName($value)
-	{
+	/**
+	 * @param string $value
+	 *
+	 * @return $this
+	 */
+	public function setName( $value ) {
 		$this->name = $value;
 
 		return $this;
 	}
 
-	public function setCompanyName($value)
-	{
+	/**
+	 * @param string $value
+	 *
+	 * @return $this
+	 */
+	public function setCompanyName( $value ) {
 		$this->company_name = $value;
 
 		return $this;
 	}
 
-	public function setResponsibleUserId($value)
-	{
+	/**
+	 * @param int $value
+	 *
+	 * @return $this
+	 */
+	public function setResponsibleUserId( $value ) {
 		$this->responsible_user_id = $value;
 
 		return $this;
 	}
 
-	public function setLinkedLeadsId($value)
-	{
-		if (!is_array($value)) {
-			$value = [$value];
+	/**
+	 * @param array|int $value
+	 *
+	 * @return $this
+	 */
+	public function setLinkedLeadsId( $value ) {
+		if ( ! is_array( $value ) ) {
+			$value = [ $value ];
 		}
 
-		$this->linked_leads_id = array_merge($this->linked_leads_id, $value);
+		$this->linked_leads_id = array_merge( $this->linked_leads_id, $value );
 
 		return $this;
 	}
 
-	public function setTags($value)
-	{
-		if (!is_array($value)) {
-			$value = [$value];
+	/**
+	 * @param array|string $value
+	 *
+	 * @return $this
+	 */
+	public function setTags( $value ) {
+		if ( ! is_array( $value ) ) {
+			$value = [ $value ];
 		}
 
-		$this->tags_array = array_merge($this->tags_array, $value);
-		$this->tags = implode(',', $this->tags_array);
+		$this->tags_array = array_merge( $this->tags_array, $value );
+		$this->tags       = implode( ',', $this->tags_array );
 
 		return $this;
 	}
 
-	public function setCustomField($name, $value, $enum = false)
-	{
+	/**
+	 * @param string     $name
+	 * @param string|int $value
+	 * @param bool       $enum
+	 *
+	 * @return $this
+	 */
+	public function setCustomField( $name, $value, $enum = false ) {
 		$field = [
-			'id' => $name,
+			'id'     => $name,
 			'values' => []
 		];
 
-		$field_value = [];
+		$field_value          = [];
 		$field_value['value'] = $value;
 
-		if ($enum) {
+		if ( $enum ) {
 			$field_value['enum'] = $enum;
 		}
 
