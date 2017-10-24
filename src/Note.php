@@ -26,29 +26,52 @@ class Note extends Entity {
 	const TYPE_CONTACT = 1;            // Привязка к контакту
 	const TYPE_LEAD    = 2;               // Привязка к сделке
 
+	/**
+	 * Note constructor.
+	 */
 	public function __construct() {
 		$this->key_name = 'notes';
 		$this->url_name = $this->key_name;
 	}
 
+	/**
+	 * @param int $value
+	 *
+	 * @return $this
+	 */
 	public function setElementId( $value ) {
 		$this->element_id = $value;
 
 		return $this;
 	}
 
+	/**
+	 * @param int $value
+	 *
+	 * @return $this
+	 */
 	public function setElementType( $value ) {
 		$this->element_type = $value;
 
 		return $this;
 	}
 
+	/**
+	 * @param int $value
+	 *
+	 * @return $this
+	 */
 	public function setNoteType( $value ) {
 		$this->note_type = $value;
 
 		return $this;
 	}
 
+	/**
+	 * @param string $value
+	 *
+	 * @return $this
+	 */
 	public function setText( $value ) {
 		$this->text = $value;
 

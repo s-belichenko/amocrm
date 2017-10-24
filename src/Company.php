@@ -12,6 +12,9 @@ class Company extends Entity {
 
 	private $tags_array;
 
+	/**
+	 * Company constructor.
+	 */
 	public function __construct() {
 		$this->key_name        = 'contacts';
 		$this->type            = 'contact';
@@ -21,18 +24,33 @@ class Company extends Entity {
 		$this->tags_array      = [];
 	}
 
+	/**
+	 * @param string $value
+	 *
+	 * @return $this
+	 */
 	public function setName( $value ) {
 		$this->name = $value;
 
 		return $this;
 	}
 
+	/**
+	 * @param int $value
+	 *
+	 * @return $this
+	 */
 	public function setResponsibleUserId( $value ) {
 		$this->responsible_user_id = $value;
 
 		return $this;
 	}
 
+	/**
+	 * @param array|int $value
+	 *
+	 * @return $this
+	 */
 	public function setLinkedLeadsId( $value ) {
 		if ( ! is_array( $value ) ) {
 			$value = [ $value ];

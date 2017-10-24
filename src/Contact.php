@@ -12,6 +12,9 @@ class Contact extends Entity {
 
 	private $tags_array;
 
+	/**
+	 * Contact constructor.
+	 */
 	public function __construct() {
 		$this->key_name        = 'contacts';
 		$this->url_name        = $this->key_name;
@@ -20,24 +23,44 @@ class Contact extends Entity {
 		$this->tags_array      = [];
 	}
 
+	/**
+	 * @param string $value
+	 *
+	 * @return $this
+	 */
 	public function setName( $value ) {
 		$this->name = $value;
 
 		return $this;
 	}
 
+	/**
+	 * @param string $value
+	 *
+	 * @return $this
+	 */
 	public function setCompanyName( $value ) {
 		$this->company_name = $value;
 
 		return $this;
 	}
 
+	/**
+	 * @param int $value
+	 *
+	 * @return $this
+	 */
 	public function setResponsibleUserId( $value ) {
 		$this->responsible_user_id = $value;
 
 		return $this;
 	}
 
+	/**
+	 * @param array|int $value
+	 *
+	 * @return $this
+	 */
 	public function setLinkedLeadsId( $value ) {
 		if ( ! is_array( $value ) ) {
 			$value = [ $value ];
@@ -48,6 +71,11 @@ class Contact extends Entity {
 		return $this;
 	}
 
+	/**
+	 * @param array|string $value
+	 *
+	 * @return $this
+	 */
 	public function setTags( $value ) {
 		if ( ! is_array( $value ) ) {
 			$value = [ $value ];
@@ -59,6 +87,13 @@ class Contact extends Entity {
 		return $this;
 	}
 
+	/**
+	 * @param string     $name
+	 * @param string|int $value
+	 * @param bool       $enum
+	 *
+	 * @return $this
+	 */
 	public function setCustomField( $name, $value, $enum = false ) {
 		$field = [
 			'id'     => $name,

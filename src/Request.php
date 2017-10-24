@@ -17,6 +17,13 @@ class Request {
 	private $if_modified_since;
 	private $object;
 
+	/**
+	 * Request constructor.
+	 *
+	 * @param int                    $request_type
+	 * @param Contact|Lead|Note|Task $params
+	 * @param                        $object
+	 */
 	public function __construct( $request_type = null, $params = null, $object = null ) {
 		$this->post   = false;
 		$this->params = $params;

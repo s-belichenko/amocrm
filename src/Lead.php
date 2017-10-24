@@ -12,6 +12,9 @@ class Lead extends Entity {
 
 	private $tags_array;
 
+	/**
+	 * Lead constructor.
+	 */
 	public function __construct() {
 		$this->key_name      = 'leads';
 		$this->url_name      = $this->key_name;
@@ -19,30 +22,55 @@ class Lead extends Entity {
 		$this->tags_array    = [];
 	}
 
+	/**
+	 * @param string $value
+	 *
+	 * @return $this
+	 */
 	public function setName( $value ) {
 		$this->name = $value;
 
 		return $this;
 	}
 
+	/**
+	 * @param int $value
+	 *
+	 * @return $this
+	 */
 	public function setResponsibleUserId( $value ) {
 		$this->responsible_user_id = $value;
 
 		return $this;
 	}
 
+	/**
+	 * @param int $value
+	 *
+	 * @return $this
+	 */
 	public function setStatusId( $value ) {
 		$this->status_id = $value;
 
 		return $this;
 	}
 
+	/**
+	 * @param string|int $value
+	 *
+	 * @return $this
+	 */
 	public function setPrice( $value ) {
 		$this->price = $value;
 
 		return $this;
 	}
 
+	/**
+	 * @param string $value
+	 *
+	 * @return $this
+	 */
 	public function setTags( $value ) {
 		if ( ! is_array( $value ) ) {
 			$value = [ $value ];
@@ -54,6 +82,13 @@ class Lead extends Entity {
 		return $this;
 	}
 
+	/**
+	 * @param string     $name
+	 * @param string|int $value
+	 * @param bool       $enum
+	 *
+	 * @return $this
+	 */
 	public function setCustomField( $name, $value, $enum = false ) {
 		$field = [
 			'id'     => $name,

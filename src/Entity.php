@@ -8,6 +8,12 @@ class Entity {
 	public $key_name;
 	public $url_name;
 
+	/**
+	 * @param int $id
+	 * @param int $last_modified
+	 *
+	 * @return $this
+	 */
 	public function setUpdate( $id, $last_modified ) {
 		$this->id            = $id;
 		$this->last_modified = $last_modified;

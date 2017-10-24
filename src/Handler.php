@@ -14,6 +14,16 @@ class Handler {
 	public $result;
 	public $last_insert_id;
 
+	/**
+	 * Handler constructor.
+	 *
+	 * @param null   $domain
+	 * @param null   $user
+	 * @param bool   $debug
+	 * @param string $configDir
+	 *
+	 * @throws \Exception
+	 */
 	public function __construct( $domain = null, $user = null, $debug = false, $configDir = '' ) {
 		$this->domain = $domain;
 		$this->user   = $user;
@@ -64,6 +74,13 @@ class Handler {
 		$this->request( new Request( Request::AUTH, $this ) );
 	}
 
+	/**
+	 * @param Request $request
+	 * @param bool    $arrayable
+	 *
+	 * @return $this
+	 * @throws \Exception
+	 */
 	public function request( Request $request, $arrayable = false ) {
 		$headers = [ 'Content-Type: application/json' ];
 		if ( $date = $request->getIfModifiedSince() ) {

@@ -6,15 +6,27 @@ class Webhook {
 	private $hooks;
 	private $config;
 
+	/**
+	 * Webhook constructor.
+	 */
 	public function __construct() {
 		$this->hooks  = [];
 		$this->config = [];
 	}
 
+	/**
+	 * @param string $name
+	 *
+	 * @return array|mixed
+	 */
 	private function getCallbacks( $name ) {
 		return isset( $this->hooks[ $name ] ) ? $this->hooks[ $name ] : [];
 	}
 
+	/**
+	 * @param string $name
+	 * @param callable $callback
+	 */
 	public function on( $name, $callback ) {
 		if ( ! is_callable( $callback, true ) ) {
 			throw new \InvalidArgumentException( sprintf( 'Invalid callback: %s.', print_r( $callback, true ) ) );
@@ -29,6 +41,9 @@ class Webhook {
 		}
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function listen() {
 		if ( ! $listen = isset( $_POST['account'] ) ) {
 			return false;
