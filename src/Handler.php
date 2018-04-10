@@ -15,13 +15,11 @@ class Handler
     public $result;
     public $last_insert_id;
 
-    public function __construct($domain = null, $user = null, $debug = false)
+    public function __construct($domain = null, $user = null, $debug = false, $config_dir = __DIR__ . '/../config/')
     {
         $this->domain = $domain;
         $this->user = $user;
         $this->debug = $debug;
-
-        $config_dir = __DIR__ . '/../config/';
 
         $file_key = $config_dir . $this->domain . '@' . $this->user . '.key';
         $file_config = $config_dir . 'config@' . $this->domain . '.php';
@@ -50,7 +48,7 @@ class Handler
         }
 
         if ($this->debug) {
-            $this->errors = @json_decode(trim(file_get_contents($config_dir . 'errors.json')));
+            $this->errors = @json_decode(trim(file_get_contents(__DIR__ . '/../config/errors.json')));
         }
 
         $this->key = $key;
