@@ -11,6 +11,7 @@ class Handler
     public $user;
     public $key;
     public $config;
+    public $headers_response;
     public $result;
     public $last_insert_id;
 
@@ -60,6 +61,7 @@ class Handler
 
     public function request(Request $request)
     {
+        $headers_response = [];
         $headers = ['Content-Type: application/json'];
         if ($date = $request->getIfModifiedSince()) {
             $headers[] = 'IF-MODIFIED-SINCE: ' . $date;
@@ -74,6 +76,24 @@ class Handler
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($ch, CURLOPT_COOKIEFILE, __DIR__ . '/../config/cookie.txt');
         curl_setopt($ch, CURLOPT_COOKIEJAR, __DIR__ . '/../config/cookie.txt');
+
+        curl_setopt($ch, CURLOPT_HEADERFUNCTION,
+            function($curl, $header) use (&$headers_response)
+            {
+                $len = strlen($header);
+                $header = explode(':', $header, 2);
+                if (count($header) < 2) // ignore invalid headers
+                    return $len;
+
+                $name = strtolower(trim($header[0]));
+                if (!array_key_exists($name, $headers_response))
+                    $headers_response[$name] = [trim($header[1])];
+                else
+                    $headers_response[$name][] = trim($header[1]);
+
+                return $len;
+            }
+        );
 
         if ($request->post) {
             curl_setopt($ch, CURLOPT_POST, true);
@@ -90,6 +110,7 @@ class Handler
             throw new \Exception($error);
         }
 
+        $this->headers_response = $headers_response;
         $this->result = json_decode($result);
 
         if (floor($info['http_code'] / 100) >= 3) {
