@@ -19,64 +19,87 @@ class Handler
     /**
      * Handler constructor.
      *
-     * @param null   $subdomain
-     * @param null   $user
-     * @param bool   $debug
-     * @param string $configDir
-     * @param string $domain
+     * @param null         $subdomain
+     * @param null         $user
+     * @param bool         $debug
+     * @param string|array $config
+     * @param string       $domain
      *
      * @throws \Exception
      */
-    public function __construct($subdomain = null, $user = null, $debug = false, $configDir = '', $domain = 'ru')
+    public function __construct($subdomain = null, $user = null, $debug = false, $config = '', $domain = 'ru')
     {
         $this->subdomain = $subdomain;
         $this->user = $user;
         $this->debug = $debug;
         $this->domain = $domain;
 
+        if (is_array($config)) {
+            $this->processConfigArray($config);
+        } else {
+            $this->processConfigDir($config);
+        }
+
+        $this->request(new Request(Request::AUTH, $this));
+    }
+
+    /**
+     * @param string $configDir
+     *
+     * @throws \Exception
+     */
+    private function processConfigDir($configDir)
+    {
         $default_config_dir = __DIR__ . '/../config/';
-        $this->configDir = empty($configDir) ?
-            $default_config_dir
-            :
-            preg_match("/\/$/", $configDir) ?
-                $configDir
-                :
-                $configDir . "/";
+        $this->configDir = empty($configDir)
+            ? $default_config_dir
+            : preg_match("/\/$/", $configDir)
+                ? $configDir
+                : $configDir . "/";
 
         $file_key = $this->configDir . $this->subdomain . '@' . $this->user . '.key';
         $file_config = $this->configDir . 'config@' . $this->subdomain . '.php';
 
+        $key = trim(file_get_contents($file_key));
+        $config = trim(file_get_contents($file_config));
+
         if (!is_readable($this->configDir) || !is_writable($this->configDir)) {
             throw new \Exception('Директория "' . $this->configDir . '" должна быть доступна для чтения и записи');
-        }
-
-        if (!file_exists($file_key)) {
-            throw new \Exception('Отсутсвует файл с ключом');
         }
 
         if (!file_exists($file_config)) {
             throw new \Exception('Отсутсвует файл с конфигурацией');
         }
 
-        $key = trim(file_get_contents($file_key));
-        $config = trim(file_get_contents($file_config));
-
-        if (empty($key)) {
-            throw new \Exception('Файл с ключом пуст');
-        }
-
         if (empty($config)) {
             throw new \Exception('Файл с конфигурацией пуст');
         }
-
-        if ($this->debug) {
-            $this->errors = @json_decode(trim(file_get_contents($this->configDir . 'errors.json')));
+        if (!file_exists($file_key)) {
+            throw new \Exception('Отсутсвует файл с ключом');
+        }
+        if (empty($key)) {
+            throw new \Exception('Файл с ключом пуст');
         }
 
         $this->key = $key;
         $this->config = include $file_config;
 
-        $this->request(new Request(Request::AUTH, $this));
+        if ($this->debug) {
+            $this->errors = @json_decode(trim(file_get_contents($this->configDir . 'errors.json')));
+        }
+    }
+
+    /**
+     * @param array $configArray
+     */
+    private function processConfigArray(array $configArray)
+    {
+        $this->key = $configArray['key'];
+        $this->config = $configArray['key_value'];
+
+        if ($this->debug) {
+            $this->errors = $configArray['errors'];
+        }
     }
 
     /**

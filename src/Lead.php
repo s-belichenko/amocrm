@@ -50,6 +50,7 @@ class Lead extends Entity {
 	 * @return $this
 	 */
 	public function setStatusId( $value ) {
+	    // TODO: проверять, не нулевое ли значение, выдавать ошибку/варнинг/нотис, если так
 		$this->status_id = $value;
 
 		return $this;
