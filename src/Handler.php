@@ -10,49 +10,21 @@ class Handler
 
     public $user;
     public $key;
-    public $config;
+    public $config = [];
     public $headers_response;
     public $result;
     public $last_insert_id;
 
-    public function __construct($domain = null, $user = null, $debug = false, $config_dir = __DIR__ . '/../config/')
+    public function __construct($domain = null, $user = null, $key, $debug = false)
     {
         $this->domain = $domain;
         $this->user = $user;
+        $this->key = $key;
         $this->debug = $debug;
 
-        $file_key = $config_dir . $this->domain . '@' . $this->user . '.key';
-        $file_config = $config_dir . 'config@' . $this->domain . '.php';
-
-        if (!is_readable($config_dir) || !is_writable($config_dir)) {
-            throw new \Exception('Директория "config" должна быть доступна для чтения и записи');
-        }
-
-        if (!file_exists($file_key)) {
-            throw new \Exception('Отсутсвует файл с ключом');
-        }
-
-        if (!file_exists($file_config)) {
-            throw new \Exception('Отсутсвует файл с конфигурацией');
-        }
-
-        $key = trim(file_get_contents($file_key));
-        $config = trim(file_get_contents($file_config));
-
         if (empty($key)) {
-            throw new \Exception('Файл с ключом пуст');
+            throw new \Exception('Api ключ не указан');
         }
-
-        if (empty($config)) {
-            throw new \Exception('Файл с конфигурацией пуст');
-        }
-
-        if ($this->debug) {
-            $this->errors = @json_decode(trim(file_get_contents(__DIR__ . '/../config/errors.json')));
-        }
-
-        $this->key = $key;
-        $this->config = include $file_config;
 
         $this->request(new Request(Request::AUTH, $this));
     }
@@ -72,8 +44,8 @@ class Handler
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_COOKIEFILE, __DIR__ . '/../config/cookie.txt');
-        curl_setopt($ch, CURLOPT_COOKIEJAR, __DIR__ . '/../config/cookie.txt');
+        curl_setopt($ch, CURLOPT_COOKIEFILE, __DIR__ . '/../config/cookie_' . $this->key . '.txt');
+        curl_setopt($ch, CURLOPT_COOKIEJAR, __DIR__ . '/../config/cookie_' . $this->key . '.txt');
 
         curl_setopt($ch, CURLOPT_HEADERFUNCTION,
             function($curl, $header) use (&$headers_response)
