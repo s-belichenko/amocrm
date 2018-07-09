@@ -8,6 +8,7 @@ class Request
     const INFO = 2;
     const GET = 3;
     const SET = 4;
+    const GOALS = 5;
 
     public $post;
     public $url;
@@ -37,6 +38,10 @@ class Request
             case Request::SET:
                 $this->createPostRequest();
                 break;
+
+            case Request::GOALS:
+                $this->createGetGoals();
+                break;
         }
     }
 
@@ -50,10 +55,17 @@ class Request
         return empty($this->if_modified_since) ? false : $this->if_modified_since;
     }
 
+    private function createGetGoals()
+    {
+        //https://lookvokrug.amocrm.ru/ajax/stats/goals/settings/
+        $this->post = true;
+        $this->url = '/ajax/stats/goals/settings/';
+    }
+
     private function createAuthRequest()
     {
         $this->post = true;
-        $this->url = 'auth.php?type=json';
+        $this->url = '/private/api/auth.php?type=json';
 
         $this->params = [
             'USER_LOGIN' => $this->params->user,
@@ -63,12 +75,12 @@ class Request
 
     private function createInfoRequest()
     {
-        $this->url = 'v2/json/accounts/current';
+        $this->url = '/private/api/v2/json/accounts/current';
     }
 
     private function createGetRequest()
     {
-        $this->url = 'v2/json/' . $this->object[0] . '/' . $this->object[1];
+        $this->url = '/private/api/v2/json/' . $this->object[0] . '/' . $this->object[1];
         $this->url .= (count($this->params) ? '?' . http_build_query($this->params) : '');
     }
 
@@ -89,7 +101,7 @@ class Request
         $this->post = true;
         $this->type = $key_name;
         $this->action = $action;
-        $this->url = 'v2/json/' . $url_name . '/set';
+        $this->url = '/private/api/v2/json/' . $url_name . '/set';
         $this->params = $params;
     }
 }

@@ -36,9 +36,10 @@ class Handler
         if ($date = $request->getIfModifiedSince()) {
             $headers[] = 'IF-MODIFIED-SINCE: ' . $date;
         }
+        $headers[] = 'X-Requested-With: XMLHttpRequest';
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://' . $this->domain . '.amocrm.ru/private/api/' . $request->url);
+        curl_setopt($ch, CURLOPT_URL, 'https://' . $this->domain . '.amocrm.ru' . $request->url);
         curl_setopt($ch, CURLOPT_USERAGENT, 'amoCRM-API-client/1.0');
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
