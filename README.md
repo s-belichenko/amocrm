@@ -1,5 +1,3 @@
-[![Latest Version on Packagist][ico-version]][link-packagist]
-
 # amoCRM API
 Простая обертка для работы с API AmoCRM.
 
