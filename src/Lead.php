@@ -44,12 +44,17 @@ class Lead extends Entity {
 		return $this;
 	}
 
-	/**
-	 * @param int $value
-	 *
-	 * @return $this
-	 */
+    /**
+     * @param int $value
+     *
+     * @return $this
+     * @throws \Exception
+     */
 	public function setStatusId( $value ) {
+	    if (!isset($value) || !$value) {
+	        throw new \Exception('Необходимо задать корректный ID статуса сущности Lead.');
+        }
+
 		$this->status_id = $value;
 
 		return $this;
