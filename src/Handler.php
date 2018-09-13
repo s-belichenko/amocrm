@@ -4,9 +4,11 @@ namespace AmoCRM;
 
 class Handler
 {
-    private $domain;
+    private $subdomain;
     private $debug;
     private $errors;
+    private $configDir;
+    private $domain;
 
     public $user;
     public $key;
@@ -14,51 +16,100 @@ class Handler
     public $result;
     public $last_insert_id;
 
-    public function __construct($domain = null, $user = null, $debug = false)
+    /**
+     * Handler constructor.
+     *
+     * @param null         $subdomain
+     * @param null         $user
+     * @param bool         $debug
+     * @param string|array $config
+     * @param string       $domain
+     *
+     * @throws \Exception
+     */
+    public function __construct($subdomain = null, $user = null, $debug = false, $config = '', $domain = 'ru')
     {
-        $this->domain = $domain;
+        $this->subdomain = $subdomain;
         $this->user = $user;
         $this->debug = $debug;
+        $this->domain = $domain;
 
-        $config_dir = __DIR__ . '/../config/';
-
-        $file_key = $config_dir . $this->domain . '@' . $this->user . '.key';
-        $file_config = $config_dir . 'config@' . $this->domain . '.php';
-
-        if (!is_readable($config_dir) || !is_writable($config_dir)) {
-            throw new \Exception('Директория "config" должна быть доступна для чтения и записи');
+        if (is_array($config)) {
+            $this->processConfigArray($config);
+        } else {
+            $this->processConfigDir($config);
         }
 
-        if (!file_exists($file_key)) {
-            throw new \Exception('Отсутсвует файл с ключом');
+        $this->request(new Request(Request::AUTH, $this));
+    }
+
+    /**
+     * @param string $configDir
+     *
+     * @throws \Exception
+     */
+    private function processConfigDir($configDir)
+    {
+        $default_config_dir = __DIR__ . '/../config/';
+        $this->configDir = empty($configDir)
+            ? $default_config_dir
+            : preg_match("/\/$/", $configDir)
+                ? $configDir
+                : $configDir . "/";
+
+        $file_key = $this->configDir . $this->subdomain . '@' . $this->user . '.key';
+        $file_config = $this->configDir . 'config@' . $this->subdomain . '.php';
+
+        $key = trim(file_get_contents($file_key));
+        $config = trim(file_get_contents($file_config));
+
+        if (!is_readable($this->configDir) || !is_writable($this->configDir)) {
+            throw new \Exception('Директория "' . $this->configDir . '" должна быть доступна для чтения и записи');
         }
 
         if (!file_exists($file_config)) {
             throw new \Exception('Отсутсвует файл с конфигурацией');
         }
 
-        $key = trim(file_get_contents($file_key));
-        $config = trim(file_get_contents($file_config));
-
-        if (empty($key)) {
-            throw new \Exception('Файл с ключом пуст');
-        }
-
         if (empty($config)) {
             throw new \Exception('Файл с конфигурацией пуст');
         }
-
-        if ($this->debug) {
-            $this->errors = @json_decode(trim(file_get_contents($config_dir . 'errors.json')));
+        if (!file_exists($file_key)) {
+            throw new \Exception('Отсутсвует файл с ключом');
+        }
+        if (empty($key)) {
+            throw new \Exception('Файл с ключом пуст');
         }
 
         $this->key = $key;
         $this->config = include $file_config;
 
-        $this->request(new Request(Request::AUTH, $this));
+        if ($this->debug) {
+            $this->errors = @json_decode(trim(file_get_contents($this->configDir . 'errors.json')));
+        }
     }
 
-    public function request(Request $request)
+    /**
+     * @param array $configArray
+     */
+    private function processConfigArray(array $configArray)
+    {
+        $this->key = $configArray['key'];
+        $this->config = $configArray['key_value'];
+
+        if ($this->debug) {
+            $this->errors = $configArray['errors'];
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @param bool    $arrayable
+     *
+     * @return $this
+     * @throws \Exception
+     */
+    public function request(Request $request, $arrayable = false)
     {
         $headers = ['Content-Type: application/json'];
         if ($date = $request->getIfModifiedSince()) {
@@ -66,14 +117,14 @@ class Handler
         }
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://' . $this->domain . '.amocrm.ru/private/api/' . $request->url);
+        curl_setopt($ch, CURLOPT_URL, "https://$this->subdomain.amocrm.$this->domain/private/api/$request->url");
         curl_setopt($ch, CURLOPT_USERAGENT, 'amoCRM-API-client/1.0');
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_COOKIEFILE, __DIR__ . '/../config/cookie.txt');
-        curl_setopt($ch, CURLOPT_COOKIEJAR, __DIR__ . '/../config/cookie.txt');
+        curl_setopt($ch, CURLOPT_COOKIEFILE, $this->configDir . 'cookie.txt');
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $this->configDir . 'cookie.txt');
 
         if ($request->post) {
             curl_setopt($ch, CURLOPT_POST, true);
@@ -102,8 +153,8 @@ class Handler
                 $response = (isset($this->result->response->error)) ? $this->result->response->error : '';
 
                 $message = json_encode([
-                    'http_code' => $info['http_code'],
-                    'response' => $response,
+                    'http_code'   => $info['http_code'],
+                    'response'    => $response,
                     'description' => $description
                 ], JSON_UNESCAPED_UNICODE);
             }
@@ -111,7 +162,13 @@ class Handler
             throw new \Exception($message);
         }
 
-        $this->result = isset($this->result->response) ? $this->result->response : false;
+        $this->result = isset($this->result->response) ?
+            ($arrayable) ?
+                json_decode(json_encode($this->result->response), true)
+                :
+                $this->result->response
+            :
+            false;
         $this->last_insert_id = ($request->post && isset($this->result->{$request->type}->{$request->action}[0]->id))
             ? $this->result->{$request->type}->{$request->action}[0]->id
             : false;
