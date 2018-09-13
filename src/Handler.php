@@ -43,6 +43,7 @@ class Handler
         curl_setopt($ch, CURLOPT_USERAGENT, 'amoCRM-API-client/1.0');
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($ch, CURLOPT_COOKIEFILE, __DIR__ . '/../config/cookie_' . $this->key . '.txt');
