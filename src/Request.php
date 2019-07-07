@@ -10,20 +10,27 @@ class Request
     const SET = 4;
     const GOALS = 5;
 
+    const FORMAT_ARRAY = true;
+    const FORMAT_OBJECT = false;
+
+    public $request_type;
     public $post;
     public $url;
     public $type;
     public $action;
     public $params;
+    public $format;
 
     private $if_modified_since;
-    private $object;
+    public $object;
 
     public function __construct($request_type = null, $params = null, $object = null)
     {
+        $this->request_type = $request_type;
         $this->post = false;
         $this->params = $params;
         $this->object = $object;
+        $this->format = self::FORMAT_OBJECT;
 
         switch ($request_type) {
             case Request::AUTH:
@@ -43,6 +50,11 @@ class Request
                 $this->createGetGoals();
                 break;
         }
+    }
+
+    public function setFormat($format)
+    {
+        $this->format = $format;
     }
 
     public function setIfModifiedSince($if_modified_since)
@@ -75,7 +87,7 @@ class Request
 
     private function createInfoRequest()
     {
-        $this->url = '/private/api/v2/json/accounts/current';
+        $this->url = '/private/api/v2/json/accounts/current?with=users&free_users=Y';
     }
 
     private function createGetRequest()
