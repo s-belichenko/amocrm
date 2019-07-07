@@ -100,6 +100,10 @@ class Handler
         $this->headers_response = $headers_response;
         $this->result = json_decode($result, $request->format);
 
+        if (json_last_error() != JSON_ERROR_NONE) {
+            return $this;
+        }
+
         if ($request->format == Request::FORMAT_ARRAY) {
             return $this->parseArray($request, $info);
         }
